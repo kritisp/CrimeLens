@@ -1,0 +1,27 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: crimelens_backend_prod
+    ports:
+      # Expose standard production port
+      - "8000:8000"
+    # No volume mounting of source code in production to ensure:
+    # 1. Container immutability (the container running in prod is exactly what was built and tested).
+    # 2. Performance (no file system syncing overhead).
+    # 3. Security (prevent local file system modifications from altering running code).
+    environment:
+      - ENVIRONMENT=production
+      - LOG_LEVEL=WARNING
+      - LOG_JSON=true
+      - DEBUG=false
+      # Allowed origins list. Replace with domain name in deployment.
+      - CORS_ORIGINS=["https://crimelens.ksp.gov.in"]
+    # Run in high-performance production mode without --reload flags.
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    restart: always
+
+  # Note: In a true production environment, the frontend is pre-built (npm run build)
+  # and served via a CDN or static web hosting (e.g. Zoho Catalyst Stratus / Nginx).
+  # If a frontend container is preferred, it uses a multi-stage Nginx container.
