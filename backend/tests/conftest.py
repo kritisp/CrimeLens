@@ -48,22 +48,73 @@ def test_settings() -> Settings:
     )
 
 
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.orm import sessionmaker
+from app.infrastructure.database.setup import get_db, Base
+from app.core.synthetic import generate_synthetic_dataset
+from app.infrastructure.database.repositories.sqlite_repository import SQLiteFIRRepository
+from typing import AsyncIterator
+
+# Create test engine and sessionmaker for isolated memory testing
+test_engine = create_async_engine(
+    "sqlite+aiosqlite:///:memory:",
+    echo=False,
+    future=True,
+)
+
+TestSessionLocal = sessionmaker(
+    test_engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+    autocommit=False,
+    autoflush=False,
+)
+
+
+async def override_get_db() -> AsyncIterator[AsyncSession]:
+    async with TestSessionLocal() as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+        finally:
+            await session.close()
+
+
 @pytest.fixture(scope="session")
 async def client(test_settings: Settings) -> AsyncIterator[AsyncClient]:
     """
     Asynchronous test client wrapping the ASGI application.
     Enables HTTP requests directly to endpoints without starting a real port server.
-
-    Usage:
-        async def test_health(client: AsyncClient):
-            res = await client.get("/api/v1/health")
-            assert res.status_code == 200
     """
+    # Create tables in the test database
+    async with test_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+        
+    # Seed test database with synthetic cases
+    async with TestSessionLocal() as session:
+        repo = SQLiteFIRRepository(session)
+        cases = generate_synthetic_dataset()
+        for case in cases:
+            await repo.store_raw_fir(case.model_dump())
+        await session.commit()
+
+    # Seed SIGNATURES_DB cache for tests to prevent 404 on patterns/similar case IDs
+    from app.core.dependencies import SIGNATURES_DB
+    from app.services.crime_signature.core import create_default_pipeline
+    pipeline = create_default_pipeline()
+    for case in cases:
+        sig, _ = pipeline.execute(case)
+        SIGNATURES_DB[case.case_master_id] = sig
+
     # Initialize the app with test settings injected
     app = create_app()
 
-    # Override settings dependency
+    # Override settings and db dependencies
     app.dependency_overrides[get_settings] = lambda: test_settings
+    app.dependency_overrides[get_db] = override_get_db
 
     # Use HTTPX's ASGITransport to talk directly to the ASGI app
     transport = ASGITransport(app=app)

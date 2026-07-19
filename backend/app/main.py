@@ -51,10 +51,22 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         debug=settings.debug,
     )
 
-    # 2. Warm up ML models / persist connections placeholder
-    logger.info("ml_models_load_started", model_name=settings.ml_model_name)
-    # Placeholder: ML model loading / loading index.
-    logger.info("ml_models_load_completed")
+    # 2. Initialize and Seed DB, load signatures and Warm up FAISS ML Models
+    try:
+        from app.core.dependencies import init_db, load_signatures_from_db, get_pipeline_executor
+        logger.info("db_initialization_started")
+        await init_db()
+        logger.info("db_initialization_completed")
+
+        logger.info("signatures_load_started")
+        await load_signatures_from_db()
+        logger.info("signatures_load_completed")
+
+        logger.info("ml_models_load_started", model_name=settings.ml_model_name)
+        get_pipeline_executor()
+        logger.info("ml_models_load_completed")
+    except Exception as exc:
+        logger.exception("lifespan_startup_failed", error=str(exc))
 
     yield
 
@@ -86,11 +98,27 @@ def create_app() -> FastAPI:
     # ── CORS Middleware ───────────────────────────────────────────────────────
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=settings.cors_origins,
+        allow_origins=[
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "http://localhost:5174",
+            "http://127.0.0.1:5174",
+            "http://localhost:5175",
+            "http://127.0.0.1:5175",
+            "http://localhost:5176",
+            "http://127.0.0.1:5176",
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+        ],
         allow_credentials=settings.cors_allow_credentials,
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    # ── Timing and ID Middleware ──────────────────────────────────────────────
+    from app.api.v1.middleware.timing import TimingAndIDMiddleware
+    app.add_middleware(TimingAndIDMiddleware)
+
 
     # ── Exception Handlers ────────────────────────────────────────────────────
     @app.exception_handler(CrimeLensException)

@@ -1,0 +1,130 @@
+{
+    "identity": {
+        "case_master_id": 103,
+        "crime_no": "323456789012345678",
+        "signature_hash": "d042b8747441cff91155ce8796bc64e932cd3fe06b6411d5a85be9e477de5c0d",
+        "schema_version": "2.1.0",
+        "feature_version": "2.1.0"
+    },
+    "crime_dna": {
+        "behavior_hash": "a4034803a95dd3311aca5efb101adb48102e2175cf07344dd97abf86cd887f02",
+        "legal_hash": "4ce007acfbc885de101367228313e1f4117fb3aa9a6e951d01f37a497161ea0d",
+        "temporal_hash": "a46a1c4b340f8937394937be52a8227d5e4df3312748a4ba4bcde5c3b00ff33a",
+        "spatial_hash": "5f0db1a3affb1b8578eec3347ddc2d35f1f003ed8891a8884af033cea97078f8",
+        "taxonomy_hash": "527051bfbc4ea48afe77a537c106f9cac73caa5d5efcb642682ab0e95df393ec",
+        "victim_hash": "665fe8415978e8654f4a464e4fffb798e4c157621ff863eb0311aa8526879e0a",
+        "accused_hash": "45b5166f626494bd106c7fe32a772d3668954c7138c985bc63b32663220d51e4",
+        "overall_crime_hash": "d042b8747441cff91155ce8796bc64e932cd3fe06b6411d5a85be9e477de5c0d"
+    },
+    "taxonomy": {
+        "case_category": "FIR",
+        "gravity_offence": "Non-Heinous",
+        "crime_major_head": "CHEATING",
+        "crime_minor_head": "CYBER FRAUD",
+        "taxonomy_hash": "527051bfbc4ea48afe77a537c106f9cac73caa5d5efcb642682ab0e95df393ec"
+    },
+    "legal": {
+        "statutory_charges": [
+            {
+                "act_code": "IPC",
+                "section_code": "420"
+            },
+            {
+                "act_code": "IT ACT",
+                "section_code": "66D"
+            }
+        ],
+        "legal_hash": "4ce007acfbc885de101367228313e1f4117fb3aa9a6e951d01f37a497161ea0d"
+    },
+    "temporal": {
+        "incident_date_from": "2023-05-05T10:00:00+00:00Z",
+        "incident_date_to": null,
+        "info_received_date": "2023-05-06T10:00:00+00:00Z",
+        "reporting_delay_minutes": 1440,
+        "day_of_week": "Friday",
+        "time_of_day": "Day Hours",
+        "temporal_hash": "a46a1c4b340f8937394937be52a8227d5e4df3312748a4ba4bcde5c3b00ff33a"
+    },
+    "spatial": {
+        "latitude": 12.95,
+        "longitude": 77.55,
+        "geohash": "tdr1st",
+        "police_station_id": 3,
+        "spatial_hash": "5f0db1a3affb1b8578eec3347ddc2d35f1f003ed8891a8884af033cea97078f8"
+    },
+    "victim": {
+        "victim_count": 0,
+        "gender_distribution": "Unknown",
+        "age_distribution": "Unknown",
+        "occupation_distribution": "Unknown",
+        "police_targeted": false,
+        "victim_vulnerability_score": 0.5,
+        "victim_category": "Individual",
+        "repeat_victim_indicator": false,
+        "victim_summary": "0 victim(s) identified. Category: Individual.",
+        "victim_hash": "665fe8415978e8654f4a464e4fffb798e4c157621ff863eb0311aa8526879e0a",
+        "provenance": []
+    },
+    "accused": {
+        "accused_count": 0,
+        "gender_distribution": "Unknown",
+        "age_distribution": "Unknown",
+        "known_gang_indicator": false,
+        "repeat_offender_indicator": false,
+        "arrest_status": "Unknown",
+        "absconding_indicator": false,
+        "organization_indicator": false,
+        "criminal_history_count": 0,
+        "accused_summary": "0 accused recorded. Gang involvement: No.",
+        "accused_hash": "45b5166f626494bd106c7fe32a772d3668954c7138c985bc63b32663220d51e4",
+        "provenance": []
+    },
+    "property": {
+        "stolen_properties": [],
+        "recovered_properties": []
+    },
+    "behavioral": {
+        "entry_method": "Unknown",
+        "exit_method": null,
+        "target_selection_strategy": null,
+        "target_property_type": null,
+        "weapon_used": null,
+        "violence_used": false,
+        "force_used": false,
+        "planning_level": "Unknown",
+        "estimated_offender_count": "Unknown",
+        "vehicle_used": null,
+        "mask_used": false,
+        "communication_method": null,
+        "escape_strategy": null,
+        "forced_entry_indicator": false,
+        "professional_mo_indicator": false,
+        "behavior_tags": [],
+        "behavior_confidence": 0.0,
+        "behavior_summary": "Tags: . Weapon: None.",
+        "behavior_hash": "a4034803a95dd3311aca5efb101adb48102e2175cf07344dd97abf86cd887f02",
+        "provenance": []
+    },
+    "investigation": {
+        "case_status": "OPEN",
+        "investigating_officer": null
+    },
+    "intelligence": {
+        "organized_crime_indicator": false,
+        "serial_crime_indicator": false,
+        "cross_district_indicator": false,
+        "holiday_crime_indicator": false,
+        "festival_crime_indicator": false,
+        "night_crime_indicator": false,
+        "professional_gang_indicator": false,
+        "crime_cluster_indicator": false,
+        "behavior_similarity_vector": null,
+        "intelligence_confidence": 0.0,
+        "intelligence_summary": "Organized Crime: False. Night Operation: False.",
+        "intelligence_hash": "9c2b78654f562501a320a807aaf161986f4659693a8fed4eb870f210ab436459",
+        "provenance": []
+    },
+    "embedding_document": {
+        "semantic_text": "### Crime Taxonomy\nCategory: FIR. Gravity: Non-Heinous. Major Head: CHEATING. Minor Head: CYBER FRAUD.\n\n### Legal Signature\nStatutory Charges: IPC 420, IT ACT 66D.\n\n### Temporal Context\nDay of Week: Friday. Time of Day: Day Hours.\n\n### Behavior Profile\nTags: . Weapon: None.\n\n### Victim Profile\n0 victim(s) identified. Category: Individual.\n\n### Accused Profile\n0 accused recorded. Gang involvement: No.\n\n### Crime Intelligence Indicators\nOrganized Crime: False. Night Operation: False."
+    }
+}

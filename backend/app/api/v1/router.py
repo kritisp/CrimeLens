@@ -49,30 +49,53 @@ api_router.include_router(
     tags=["System"],
 )
 
+# ── Dashboard ─────────────────────────────────────────────────────────────────
+from app.api.v1.endpoints import dashboard
+api_router.include_router(
+    dashboard.router,
+    tags=["Dashboard"],
+)
+
+# ── Intelligence ──────────────────────────────────────────────────────────────
+from app.api.v1.endpoints import intelligence
+api_router.include_router(
+    intelligence.router,
+    tags=["Intelligence"],
+)
+
+# ── Analysis & Inference ─────────────────────────────────────────────────────
+from app.api.v1.endpoints import analysis
+api_router.include_router(
+    analysis.router,
+    prefix="/analysis",
+    tags=["Analysis"],
+)
+
+
 # ── Authentication ─────────────────────────────────────────────────────────────
-# from app.api.v1.endpoints import auth
-# api_router.include_router(auth.router, prefix="/auth", tags=["Authentication"])
+from app.api.v1.endpoints import auth
+api_router.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 
 # ── Cases ─────────────────────────────────────────────────────────────────────
-# from app.api.v1.endpoints import cases
-# api_router.include_router(cases.router, prefix="/cases", tags=["Cases"])
+from app.api.v1.endpoints import cases
+api_router.include_router(cases.router, prefix="/cases", tags=["Cases"])
 
 # ── Chat & Copilot ────────────────────────────────────────────────────────────
-# from app.api.v1.endpoints import chat
-# api_router.include_router(chat.router, prefix="/chat", tags=["Chat"])
+from app.api.v1.endpoints import chat
+api_router.include_router(chat.router, prefix="/chat", tags=["Chat"])
 
 # ── Heatmaps ──────────────────────────────────────────────────────────────────
-# from app.api.v1.endpoints import heatmap
-# api_router.include_router(heatmap.router, prefix="/heatmap", tags=["Heatmaps"])
+from app.api.v1.endpoints import heatmap
+api_router.include_router(heatmap.router, prefix="/heatmap", tags=["Heatmaps"])
 
 # ── Network Explorer ──────────────────────────────────────────────────────────
-# from app.api.v1.endpoints import network
-# api_router.include_router(network.router, prefix="/network", tags=["Network"])
+from app.api.v1.endpoints import network
+api_router.include_router(network.router, prefix="/network", tags=["Network"])
 
 # ── Reports ───────────────────────────────────────────────────────────────────
-# from app.api.v1.endpoints import reports
-# api_router.include_router(reports.router, prefix="/reports", tags=["Reports"])
+from app.api.v1.endpoints import reports
+api_router.include_router(reports.router, prefix="/reports", tags=["Reports"])
 
 # ── Pattern Analysis ──────────────────────────────────────────────────────────
-# from app.api.v1.endpoints import patterns
-# api_router.include_router(patterns.router, prefix="/pattern", tags=["Patterns"])
+from app.api.v1.endpoints import patterns
+api_router.include_router(patterns.router, prefix="/pattern", tags=["Patterns"])

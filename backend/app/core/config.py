@@ -116,6 +116,16 @@ class Settings(BaseSettings):
         description="Path to the persisted FAISS index file.",
     )
 
+    # ── Gemini AI ─────────────────────────────────────────────────────────────
+    gemini_api_key: str = Field(
+        default="INSECURE-MOCK-GEMINI-KEY",
+        description="Google Gemini API Key.",
+    )
+    gemini_model: str = Field(
+        default="gemini-2.5-flash",
+        description="Gemini Model.",
+    )
+
     # ── Database ──────────────────────────────────────────────────────────────
     database_url: str = Field(
         default="sqlite+aiosqlite:///./crimelens.db",
@@ -154,6 +164,16 @@ class Settings(BaseSettings):
     # ── Computed Properties ───────────────────────────────────────────────────
 
     @property
+    def GEMINI_API_KEY(self) -> str:
+        """Uppercase alias for Gemini API key."""
+        return self.gemini_api_key
+
+    @property
+    def GEMINI_MODEL(self) -> str:
+        """Uppercase alias for Gemini model code."""
+        return self.gemini_model
+
+    @property
     def is_production(self) -> bool:
         """True when running in the production environment."""
         return self.environment == "production"
@@ -182,3 +202,6 @@ def get_settings() -> Settings:
         app.dependency_overrides[get_settings] = lambda: Settings(environment="development")
     """
     return Settings()
+
+
+settings = get_settings()

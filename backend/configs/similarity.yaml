@@ -1,0 +1,13 @@
+# CrimeLens AI — Hybrid Similarity Engine Configurations
+
+similarity:
+  threshold: 0.50          # Minimum similarity score required to qualify as a match
+  top_n: 10               # Default number of top similarity records to return
+  weights:
+    embedding: 0.45       # Weight for dense vector similarity
+    crime_head: 0.10      # Weight for major crime head category matching
+    crime_sub_head: 0.05  # Weight for minor crime head category matching
+    legal: 0.10           # Weight for statutory acts/sections Jaccard match
+    temporal: 0.10        # Weight for cyclical hour and day angle matches
+    spatial: 0.10         # Weight for geohash prefix matches
+    behavior: 0.10        # Weight for Modus Operandi tags overlap matches

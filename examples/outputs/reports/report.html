@@ -1,0 +1,68 @@
+
+        <html>
+        <head>
+            <title>CrimeLens Evaluation Report</title>
+            <style>
+                body { font-family: sans-serif; margin: 40px; }
+                table { border-collapse: collapse; width: 100%; }
+                th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                th { background-color: #f2f2f2; }
+            </style>
+        </head>
+        <body>
+            <h1>CrimeLens AI — Evaluation Report</h1>
+            <h2>1. Dataset Statistics</h2>
+            <ul>
+                <li><strong>Total Cases:</strong> 25</li>
+                <li><strong>Missing Coordinates:</strong> 0</li>
+            </ul>
+            <h2>2. Benchmark Results</h2>
+            <table>
+                <tr>
+                    <th>Model</th>
+                    <th>Recall@5</th>
+                    <th>Recall@10</th>
+                    <th>MRR</th>
+                    <th>MAP</th>
+                    <th>NDCG@10</th>
+                    <th>Latency (ms)</th>
+                    <th>QPS</th>
+                </tr>
+        
+                <tr>
+                    <td>MiniLM-L6-v2</td>
+                    <td>0.080</td>
+                    <td>0.400</td>
+                    <td>0.312</td>
+                    <td>0.143</td>
+                    <td>0.282</td>
+                    <td>15.4</td>
+                    <td>64.8</td>
+                </tr>
+            
+                <tr>
+                    <td>BGE-Small-EN-v1.5</td>
+                    <td>0.240</td>
+                    <td>0.400</td>
+                    <td>0.440</td>
+                    <td>0.154</td>
+                    <td>0.311</td>
+                    <td>15.7</td>
+                    <td>63.7</td>
+                </tr>
+            
+                <tr>
+                    <td>E5-Base</td>
+                    <td>0.240</td>
+                    <td>0.400</td>
+                    <td>0.238</td>
+                    <td>0.130</td>
+                    <td>0.258</td>
+                    <td>15.4</td>
+                    <td>64.3</td>
+                </tr>
+            
+            </table>
+        </body>
+        </html>
+        

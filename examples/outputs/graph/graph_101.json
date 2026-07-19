@@ -1,0 +1,84 @@
+{
+    "nodes": [
+        {
+            "node_id": "CRIME_123456789012345678",
+            "label": "Crime",
+            "properties": {
+                "crime_no": "123456789012345678",
+                "case_master_id": 101,
+                "incident_date": "2023-05-01T14:00:00+00:00Z",
+                "schema_version": "2.1.0",
+                "overall_hash": "4fd0cb418981745a7b71f7707e9cb4739408edb6d1cb3645765ecdb68cf5ccee"
+            }
+        },
+        {
+            "node_id": "PS_1",
+            "label": "PoliceStation",
+            "properties": {
+                "police_station_id": 1
+            }
+        },
+        {
+            "node_id": "TAX_6ffec89d82e0304f6517f365a0d9529b695cc9416883b8a33bac47c6e253e7d9",
+            "label": "CrimeTaxonomy",
+            "properties": {
+                "major_head": "THEFT",
+                "minor_head": "MOTOR VEHICLE THEFT",
+                "gravity": "Heinous"
+            }
+        },
+        {
+            "node_id": "LEGAL_IPC_379",
+            "label": "LegalSection",
+            "properties": {
+                "act": "IPC",
+                "section": "379"
+            }
+        },
+        {
+            "node_id": "MO_525ad0b2316fc6923404d785af4f1f8682e50aac05fc1c6057583d492ed5a378",
+            "label": "BehaviorCluster",
+            "properties": {
+                "summary": "Tags: Forced Entry. Weapon: None.",
+                "tags": [
+                    "Forced Entry"
+                ],
+                "weapon": null
+            }
+        }
+    ],
+    "edges": [
+        {
+            "source_id": "CRIME_123456789012345678",
+            "target_id": "PS_1",
+            "relationship_type": "CRIME_OCCURRED_AT",
+            "weight": 1.0,
+            "confidence": 1.0,
+            "properties": {}
+        },
+        {
+            "source_id": "CRIME_123456789012345678",
+            "target_id": "TAX_6ffec89d82e0304f6517f365a0d9529b695cc9416883b8a33bac47c6e253e7d9",
+            "relationship_type": "CRIME_CATEGORIZED_AS",
+            "weight": 1.0,
+            "confidence": 1.0,
+            "properties": {}
+        },
+        {
+            "source_id": "CRIME_123456789012345678",
+            "target_id": "LEGAL_IPC_379",
+            "relationship_type": "CRIME_CHARGED_UNDER",
+            "weight": 1.0,
+            "confidence": 1.0,
+            "properties": {}
+        },
+        {
+            "source_id": "CRIME_123456789012345678",
+            "target_id": "MO_525ad0b2316fc6923404d785af4f1f8682e50aac05fc1c6057583d492ed5a378",
+            "relationship_type": "CRIME_EXHIBITS_BEHAVIOR",
+            "weight": 1.0,
+            "confidence": 1.0,
+            "properties": {}
+        }
+    ]
+}

@@ -28,6 +28,24 @@ from typing import Any
 import structlog
 
 
+def safe_add_logger_name(logger: Any, method_name: str, event_dict: dict) -> dict:
+    """Safely adds the logger name, fallback to root if not present."""
+    try:
+        return structlog.stdlib.add_logger_name(logger, method_name, event_dict)
+    except AttributeError:
+        event_dict["logger"] = getattr(logger, "__name__", "root")
+        return event_dict
+
+
+def safe_add_log_level(logger: Any, method_name: str, event_dict: dict) -> dict:
+    """Safely adds the log level, fallback to method_name if not present."""
+    try:
+        return structlog.stdlib.add_log_level(logger, method_name, event_dict)
+    except AttributeError:
+        event_dict["level"] = method_name
+        return event_dict
+
+
 def configure_logging(log_level: str = "INFO", json_logs: bool = False) -> None:
     """
     Configure structlog processors for the entire application lifecycle.
@@ -52,9 +70,9 @@ def configure_logging(log_level: str = "INFO", json_logs: bool = False) -> None:
         # Useful for binding request_id, user_id at the start of a request.
         structlog.contextvars.merge_contextvars,
         # Add the __name__ of the calling module as "logger" key.
-        structlog.stdlib.add_logger_name,
+        safe_add_logger_name,
         # Add the log level (info, warning, etc.) as "level" key.
-        structlog.stdlib.add_log_level,
+        safe_add_log_level,
         # Allow positional arguments: logger.info("msg %s", value)
         structlog.stdlib.PositionalArgumentsFormatter(),
         # Add "timestamp" key in ISO 8601 format.
@@ -64,6 +82,7 @@ def configure_logging(log_level: str = "INFO", json_logs: bool = False) -> None:
         # Decode bytes to str before rendering.
         structlog.processors.UnicodeDecoder(),
     ]
+
 
     if json_logs:
         # ── Production / Staging ─────────────────────────────────────────────

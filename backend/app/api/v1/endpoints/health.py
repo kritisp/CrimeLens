@@ -44,9 +44,9 @@ class HealthResponse(BaseModel):
     tools to parse without conditional field handling.
     """
 
-    status: ServiceStatus = Field(
+    status: str = Field(
         description="Current operational status of the service.",
-        examples=[ServiceStatus.OPERATIONAL],
+        examples=["healthy"],
     )
     service: str = Field(
         description="Human-readable service name.",
@@ -106,9 +106,10 @@ async def health_check(settings: SettingsDep) -> HealthResponse:
     )
 
     return HealthResponse(
-        status=ServiceStatus.OPERATIONAL,
+        status="healthy",
         service=settings.app_name,
         version=settings.app_version,
         environment=settings.environment,
         timestamp=datetime.now(tz=timezone.utc),
     )
+

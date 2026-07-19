@@ -1,0 +1,10 @@
+# CrimeLens AI — Vector Retrieval Subsystem Configurations
+
+retrieval:
+  index_type: "flat"      # Default index structure: flat, ivf, hnsw
+  metric: "cosine"        # Metric type: cosine, l2 (euclidean), ip (inner product)
+  top_k: 10               # Default number of nearest neighbor results to return
+  radius: 0.8             # Search radius range threshold for radius queries
+  batch_size: 64          # Maximum size of batches during query processing
+  dimension: 384          # Vector dimensionality matching configured model dimensions
+  persistence_dir: "backend/storage/index" # File directory path for indexes serialization

@@ -1,0 +1,129 @@
+"""
+CrimeLens AI — Sentence Transformer Provider
+
+Concrete Strategy pattern implementation loading local weights or executing
+deterministic fallback vector models.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import time
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+from app.services.crime_signature.embedding.exceptions import ModelLoadError
+from app.services.crime_signature.embedding.interfaces import EmbeddingProvider
+from app.services.crime_signature.embedding.models import (
+    EmbeddingMetadata,
+    EmbeddingVersion,
+)
+from app.services.crime_signature.embedding.registry import ModelRegistry
+
+
+@ModelRegistry.register("sentence_transformers")
+class SentenceTransformerProvider(EmbeddingProvider):
+    """
+    Sentence Transformers Strategy Provider.
+    Enables raw vector calculations using local models or mock algorithms.
+    """
+
+    def __init__(self) -> None:
+        self.model_name: Optional[str] = None
+        self.model_path: Optional[str] = None
+        self.dimension: Optional[int] = None
+        self.mock_mode: bool = True
+        
+        # Versioning metadata parameters
+        self.model_version: str = "0.0.0"
+        self.feature_version: str = "0.0.0"
+        self.pipeline_version: str = "0.0.0"
+        
+        # Lazy loaded model instance
+        self._model: Any = None
+        self.load_time_ms: float = 0.0
+
+    def initialize(self, config: Dict[str, Any]) -> None:
+        """
+        Loads the configured model details. Loads weights lazily to optimize memory.
+        """
+        self.model_name = config.get("model_name", "unnamed")
+        self.model_path = config.get("model_path", "")
+        self.dimension = config.get("dimension", 384)
+        self.mock_mode = config.get("mock_mode", True)
+        
+        self.model_version = config.get("model_version", "1.0.0")
+        self.feature_version = config.get("feature_version", "1.0.0")
+        self.pipeline_version = config.get("pipeline_version", "1.0.0")
+
+        # If not in mock mode, attempt immediate verification of dependencies
+        if not self.mock_mode:
+            start_time = time.perf_counter()
+            try:
+                from sentence_transformers import SentenceTransformer
+                self._model = SentenceTransformer(self.model_path)
+            except Exception as exc:
+                raise ModelLoadError(
+                    f"Failed to load SentenceTransformer weights for {self.model_path}. "
+                    f"Ensure 'sentence-transformers' package is installed. Error: {str(exc)}"
+                ) from exc
+            self.load_time_ms = (time.perf_counter() - start_time) * 1000.0
+
+    def _generate_deterministic_mock_vector(self, text: str) -> List[float]:
+        """
+        Generates a deterministic float vector mapped to configured dimensions.
+        """
+        dim = self.dimension or 384
+        # Seed deterministic byte sequence via SHA-256
+        seed = hashlib.sha256(text.encode("utf-8")).digest()
+        
+        vector = []
+        for i in range(dim):
+            # Compute dimension-specific coordinate hashes
+            coord_hash = hashlib.sha256(seed + i.to_bytes(4, "big")).digest()
+            # Map coordinate projection to [-1.0, 1.0] interval
+            coord_val = (int.from_bytes(coord_hash[:4], "big") / (2**32 - 1)) * 2.0 - 1.0
+            vector.append(coord_val)
+            
+        return vector
+
+    def embed_raw(self, text: str) -> List[float]:
+        """
+        Translates raw input text into high-dimensional float coordinates.
+        """
+        if not self.model_name or not self.dimension:
+            raise ModelLoadError("SentenceTransformerProvider was not properly initialized.")
+
+        if self.mock_mode or not self._model:
+            # Run deterministic mock calculation
+            vector = self._generate_deterministic_mock_vector(text)
+            # Simulate minimal cpu hashing latency (~1ms)
+            time.sleep(0.001)
+        else:
+            # Run real SentenceTransformers inference
+            try:
+                vector_np = self._model.encode(text)
+                vector = [float(x) for x in vector_np]
+            except Exception as exc:
+                raise ModelLoadError(
+                    f"SentenceTransformer inference failed for model {self.model_name}: {str(exc)}"
+                ) from exc
+                
+        return vector
+
+    def get_metadata(self) -> EmbeddingMetadata:
+        if not self.model_name or not self.dimension:
+            raise ModelLoadError("SentenceTransformerProvider was not properly initialized.")
+
+        version = EmbeddingVersion(
+            model_version=self.model_version,
+            feature_version=self.feature_version,
+            pipeline_version=self.pipeline_version,
+        )
+
+        return EmbeddingMetadata(
+            model_name=self.model_name,
+            dimension=self.dimension,
+            version=version,
+        )
+

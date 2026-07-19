@@ -1,0 +1,84 @@
+{
+    "nodes": [
+        {
+            "node_id": "CRIME_223456789012345678",
+            "label": "Crime",
+            "properties": {
+                "crime_no": "223456789012345678",
+                "case_master_id": 102,
+                "incident_date": "2023-05-02T23:00:00+00:00Z",
+                "schema_version": "2.1.0",
+                "overall_hash": "1de8dd60e4c7418acc103015c5eb1f566e9f3eb14b615d67f0e88361eb2fb2b3"
+            }
+        },
+        {
+            "node_id": "PS_2",
+            "label": "PoliceStation",
+            "properties": {
+                "police_station_id": 2
+            }
+        },
+        {
+            "node_id": "TAX_858445a2ff904973180deb905eb1f9293e26d04fcb46ecf52cd2ddd559cb574d",
+            "label": "CrimeTaxonomy",
+            "properties": {
+                "major_head": "ASSAULT",
+                "minor_head": "ASSAULT WITH DEADLY WEAPON",
+                "gravity": "Heinous"
+            }
+        },
+        {
+            "node_id": "LEGAL_IPC_324",
+            "label": "LegalSection",
+            "properties": {
+                "act": "IPC",
+                "section": "324"
+            }
+        },
+        {
+            "node_id": "MO_f2ec2cfdade4821a1e4754dc3c3094c4aefb1ae80d29dc20741ab9add9530af0",
+            "label": "BehaviorCluster",
+            "properties": {
+                "summary": "Tags: Armed Assault. Weapon: Blunt/Edged Weapon.",
+                "tags": [
+                    "Armed Assault"
+                ],
+                "weapon": "Blunt/Edged Weapon"
+            }
+        }
+    ],
+    "edges": [
+        {
+            "source_id": "CRIME_223456789012345678",
+            "target_id": "PS_2",
+            "relationship_type": "CRIME_OCCURRED_AT",
+            "weight": 1.0,
+            "confidence": 1.0,
+            "properties": {}
+        },
+        {
+            "source_id": "CRIME_223456789012345678",
+            "target_id": "TAX_858445a2ff904973180deb905eb1f9293e26d04fcb46ecf52cd2ddd559cb574d",
+            "relationship_type": "CRIME_CATEGORIZED_AS",
+            "weight": 1.0,
+            "confidence": 1.0,
+            "properties": {}
+        },
+        {
+            "source_id": "CRIME_223456789012345678",
+            "target_id": "LEGAL_IPC_324",
+            "relationship_type": "CRIME_CHARGED_UNDER",
+            "weight": 1.0,
+            "confidence": 1.0,
+            "properties": {}
+        },
+        {
+            "source_id": "CRIME_223456789012345678",
+            "target_id": "MO_f2ec2cfdade4821a1e4754dc3c3094c4aefb1ae80d29dc20741ab9add9530af0",
+            "relationship_type": "CRIME_EXHIBITS_BEHAVIOR",
+            "weight": 1.0,
+            "confidence": 1.0,
+            "properties": {}
+        }
+    ]
+}

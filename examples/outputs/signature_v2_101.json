@@ -1,0 +1,128 @@
+{
+    "identity": {
+        "case_master_id": 101,
+        "crime_no": "123456789012345678",
+        "signature_hash": "4fd0cb418981745a7b71f7707e9cb4739408edb6d1cb3645765ecdb68cf5ccee",
+        "schema_version": "2.1.0",
+        "feature_version": "2.1.0"
+    },
+    "crime_dna": {
+        "behavior_hash": "525ad0b2316fc6923404d785af4f1f8682e50aac05fc1c6057583d492ed5a378",
+        "legal_hash": "d6ea59dd89e9371241f6d62091d656d7cc47473e71e04ba4f9d0dd60b7d6b40d",
+        "temporal_hash": "db5f3e9d848cc22bb8cdc129f6f51ecd38664d8c54e03619102a9ccabaa4ce18",
+        "spatial_hash": "93f14e43b94a5d035536ea888a48e5d5be9937be565c27397c4ccf7f0fa15c47",
+        "taxonomy_hash": "6ffec89d82e0304f6517f365a0d9529b695cc9416883b8a33bac47c6e253e7d9",
+        "victim_hash": "321dcc95b9f9862b0f97189a07423ac4c00ab4558bf09ecb1f460c9ccb427b72",
+        "accused_hash": "45b5166f626494bd106c7fe32a772d3668954c7138c985bc63b32663220d51e4",
+        "overall_crime_hash": "4fd0cb418981745a7b71f7707e9cb4739408edb6d1cb3645765ecdb68cf5ccee"
+    },
+    "taxonomy": {
+        "case_category": "FIR",
+        "gravity_offence": "Heinous",
+        "crime_major_head": "THEFT",
+        "crime_minor_head": "MOTOR VEHICLE THEFT",
+        "taxonomy_hash": "6ffec89d82e0304f6517f365a0d9529b695cc9416883b8a33bac47c6e253e7d9"
+    },
+    "legal": {
+        "statutory_charges": [
+            {
+                "act_code": "IPC",
+                "section_code": "379"
+            }
+        ],
+        "legal_hash": "d6ea59dd89e9371241f6d62091d656d7cc47473e71e04ba4f9d0dd60b7d6b40d"
+    },
+    "temporal": {
+        "incident_date_from": "2023-05-01T14:00:00+00:00Z",
+        "incident_date_to": null,
+        "info_received_date": "2023-05-01T16:00:00+00:00Z",
+        "reporting_delay_minutes": 120,
+        "day_of_week": "Monday",
+        "time_of_day": "Day Hours",
+        "temporal_hash": "db5f3e9d848cc22bb8cdc129f6f51ecd38664d8c54e03619102a9ccabaa4ce18"
+    },
+    "spatial": {
+        "latitude": 12.9716,
+        "longitude": 77.5946,
+        "geohash": "tdr1v9",
+        "police_station_id": 1,
+        "spatial_hash": "93f14e43b94a5d035536ea888a48e5d5be9937be565c27397c4ccf7f0fa15c47"
+    },
+    "victim": {
+        "victim_count": 0,
+        "gender_distribution": "Unknown",
+        "age_distribution": "Unknown",
+        "occupation_distribution": "Unknown",
+        "police_targeted": false,
+        "victim_vulnerability_score": 0.5,
+        "victim_category": "Commercial",
+        "repeat_victim_indicator": false,
+        "victim_summary": "0 victim(s) identified. Category: Commercial.",
+        "victim_hash": "321dcc95b9f9862b0f97189a07423ac4c00ab4558bf09ecb1f460c9ccb427b72",
+        "provenance": []
+    },
+    "accused": {
+        "accused_count": 0,
+        "gender_distribution": "Unknown",
+        "age_distribution": "Unknown",
+        "known_gang_indicator": false,
+        "repeat_offender_indicator": false,
+        "arrest_status": "Unknown",
+        "absconding_indicator": false,
+        "organization_indicator": false,
+        "criminal_history_count": 0,
+        "accused_summary": "0 accused recorded. Gang involvement: No.",
+        "accused_hash": "45b5166f626494bd106c7fe32a772d3668954c7138c985bc63b32663220d51e4",
+        "provenance": []
+    },
+    "property": {
+        "stolen_properties": [],
+        "recovered_properties": []
+    },
+    "behavioral": {
+        "entry_method": "Forced",
+        "exit_method": null,
+        "target_selection_strategy": null,
+        "target_property_type": null,
+        "weapon_used": null,
+        "violence_used": false,
+        "force_used": false,
+        "planning_level": "Unknown",
+        "estimated_offender_count": "Unknown",
+        "vehicle_used": null,
+        "mask_used": false,
+        "communication_method": null,
+        "escape_strategy": null,
+        "forced_entry_indicator": false,
+        "professional_mo_indicator": false,
+        "behavior_tags": [
+            "Forced Entry"
+        ],
+        "behavior_confidence": 0.0,
+        "behavior_summary": "Tags: Forced Entry. Weapon: None.",
+        "behavior_hash": "525ad0b2316fc6923404d785af4f1f8682e50aac05fc1c6057583d492ed5a378",
+        "provenance": []
+    },
+    "investigation": {
+        "case_status": "OPEN",
+        "investigating_officer": null
+    },
+    "intelligence": {
+        "organized_crime_indicator": false,
+        "serial_crime_indicator": false,
+        "cross_district_indicator": false,
+        "holiday_crime_indicator": false,
+        "festival_crime_indicator": false,
+        "night_crime_indicator": false,
+        "professional_gang_indicator": false,
+        "crime_cluster_indicator": false,
+        "behavior_similarity_vector": null,
+        "intelligence_confidence": 0.0,
+        "intelligence_summary": "Organized Crime: False. Night Operation: False.",
+        "intelligence_hash": "9c2b78654f562501a320a807aaf161986f4659693a8fed4eb870f210ab436459",
+        "provenance": []
+    },
+    "embedding_document": {
+        "semantic_text": "### Crime Taxonomy\nCategory: FIR. Gravity: Heinous. Major Head: THEFT. Minor Head: MOTOR VEHICLE THEFT.\n\n### Legal Signature\nStatutory Charges: IPC 379.\n\n### Temporal Context\nDay of Week: Monday. Time of Day: Day Hours.\n\n### Behavior Profile\nTags: Forced Entry. Weapon: None.\n\n### Victim Profile\n0 victim(s) identified. Category: Commercial.\n\n### Accused Profile\n0 accused recorded. Gang involvement: No.\n\n### Crime Intelligence Indicators\nOrganized Crime: False. Night Operation: False."
+    }
+}

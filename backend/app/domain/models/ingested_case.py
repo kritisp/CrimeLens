@@ -103,10 +103,10 @@ class IngestedCase(BaseModel):
     @field_validator("crime_no")
     @classmethod
     def validate_crime_no(cls, value: str) -> str:
-        # Crime number is assigned as a 17-character digit sequence
+        # Crime number is assigned as an 18-character digit sequence
         cleaned = value.strip()
-        if not (cleaned.isdigit() and len(cleaned) == 17):
-            raise ValueError(f"CrimeNo must be a 17-digit string, got: {value!r}")
+        if not (cleaned.isdigit() and len(cleaned) == 18):
+            raise ValueError(f"CrimeNo must be an 18-digit string, got: {value!r}")
         return cleaned
 
     @field_validator("latitude")
@@ -129,8 +129,11 @@ class IngestedCase(BaseModel):
     @classmethod
     def ensure_utc(cls, value: Optional[datetime]) -> Optional[datetime]:
         """Ensures all date timestamps are timezone-aware and set to UTC."""
-        if value is not None and value.tzinfo is None:
-            return value.replace(tzinfo=None)  # Stored as naive UTC by database standard
+        if value is not None:
+            from datetime import timezone
+            if value.tzinfo is None:
+                return value.replace(tzinfo=timezone.utc)
+            return value.astimezone(timezone.utc)
         return value
 
     @property

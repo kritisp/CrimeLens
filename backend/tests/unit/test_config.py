@@ -13,10 +13,14 @@ from pydantic import ValidationError
 from app.core.config import Settings
 
 
-def test_settings_defaults() -> None:
+def test_settings_defaults(monkeypatch: pytest.MonkeyPatch) -> None:
     """Verifies that default settings are correctly populated."""
-    settings = Settings()
+    monkeypatch.delenv("DEBUG", raising=False)
+    monkeypatch.delenv("ENVIRONMENT", raising=False)
+    monkeypatch.delenv("APP_NAME", raising=False)
+    settings = Settings(_env_file=None)
     assert settings.app_name == "CrimeLens AI"
+    # Allow local system variations but default check environment
     assert settings.environment == "development"
     assert settings.debug is False
     assert settings.api_v1_prefix == "/api/v1"

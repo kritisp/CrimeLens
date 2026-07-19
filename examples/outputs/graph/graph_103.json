@@ -1,0 +1,98 @@
+{
+    "nodes": [
+        {
+            "node_id": "CRIME_323456789012345678",
+            "label": "Crime",
+            "properties": {
+                "crime_no": "323456789012345678",
+                "case_master_id": 103,
+                "incident_date": "2023-05-05T10:00:00+00:00Z",
+                "schema_version": "2.1.0",
+                "overall_hash": "d042b8747441cff91155ce8796bc64e932cd3fe06b6411d5a85be9e477de5c0d"
+            }
+        },
+        {
+            "node_id": "PS_3",
+            "label": "PoliceStation",
+            "properties": {
+                "police_station_id": 3
+            }
+        },
+        {
+            "node_id": "TAX_527051bfbc4ea48afe77a537c106f9cac73caa5d5efcb642682ab0e95df393ec",
+            "label": "CrimeTaxonomy",
+            "properties": {
+                "major_head": "CHEATING",
+                "minor_head": "CYBER FRAUD",
+                "gravity": "Non-Heinous"
+            }
+        },
+        {
+            "node_id": "LEGAL_IPC_420",
+            "label": "LegalSection",
+            "properties": {
+                "act": "IPC",
+                "section": "420"
+            }
+        },
+        {
+            "node_id": "LEGAL_IT_ACT_66D",
+            "label": "LegalSection",
+            "properties": {
+                "act": "IT ACT",
+                "section": "66D"
+            }
+        },
+        {
+            "node_id": "MO_a4034803a95dd3311aca5efb101adb48102e2175cf07344dd97abf86cd887f02",
+            "label": "BehaviorCluster",
+            "properties": {
+                "summary": "Tags: . Weapon: None.",
+                "tags": [],
+                "weapon": null
+            }
+        }
+    ],
+    "edges": [
+        {
+            "source_id": "CRIME_323456789012345678",
+            "target_id": "PS_3",
+            "relationship_type": "CRIME_OCCURRED_AT",
+            "weight": 1.0,
+            "confidence": 1.0,
+            "properties": {}
+        },
+        {
+            "source_id": "CRIME_323456789012345678",
+            "target_id": "TAX_527051bfbc4ea48afe77a537c106f9cac73caa5d5efcb642682ab0e95df393ec",
+            "relationship_type": "CRIME_CATEGORIZED_AS",
+            "weight": 1.0,
+            "confidence": 1.0,
+            "properties": {}
+        },
+        {
+            "source_id": "CRIME_323456789012345678",
+            "target_id": "LEGAL_IPC_420",
+            "relationship_type": "CRIME_CHARGED_UNDER",
+            "weight": 1.0,
+            "confidence": 1.0,
+            "properties": {}
+        },
+        {
+            "source_id": "CRIME_323456789012345678",
+            "target_id": "LEGAL_IT_ACT_66D",
+            "relationship_type": "CRIME_CHARGED_UNDER",
+            "weight": 1.0,
+            "confidence": 1.0,
+            "properties": {}
+        },
+        {
+            "source_id": "CRIME_323456789012345678",
+            "target_id": "MO_a4034803a95dd3311aca5efb101adb48102e2175cf07344dd97abf86cd887f02",
+            "relationship_type": "CRIME_EXHIBITS_BEHAVIOR",
+            "weight": 1.0,
+            "confidence": 1.0,
+            "properties": {}
+        }
+    ]
+}

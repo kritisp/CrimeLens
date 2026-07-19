@@ -35,8 +35,9 @@ async def test_health_check_endpoint(client: AsyncClient) -> None:
     assert "timestamp" in data
 
     # Verify structural values
-    assert data["status"] == "operational"
+    assert data["status"] == "healthy"
     assert data["service"] == "CrimeLens AI (Test Suite)"
     assert data["version"] == "1.0.0"
     assert data["environment"] == "development"
     assert data["timestamp"].endswith("Z") or "+00:00" in data["timestamp"]
+

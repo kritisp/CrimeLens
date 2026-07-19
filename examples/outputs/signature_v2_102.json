@@ -1,0 +1,137 @@
+{
+    "identity": {
+        "case_master_id": 102,
+        "crime_no": "223456789012345678",
+        "signature_hash": "64a3804c9e544ef19000424ff8dde4c08d79e5e5a949585634323ac77f830de1",
+        "schema_version": "2.1.0",
+        "feature_version": "2.1.0"
+    },
+    "crime_dna": {
+        "behavior_hash": "f2ec2cfdade4821a1e4754dc3c3094c4aefb1ae80d29dc20741ab9add9530af0",
+        "legal_hash": "8dc44ac2211f271bed5f479dfe12b894da922b4edd376c811505af02e8db9cda",
+        "temporal_hash": "71e875c19eea4e829329d6d2a06da212d85129589b3236b422b88f55761846de",
+        "spatial_hash": "b52a801d23e26b6ef7c550c45b8f44063390c48891d5cf8a95e3ee26597713c7",
+        "taxonomy_hash": "858445a2ff904973180deb905eb1f9293e26d04fcb46ecf52cd2ddd559cb574d",
+        "victim_hash": "665fe8415978e8654f4a464e4fffb798e4c157621ff863eb0311aa8526879e0a",
+        "accused_hash": "45b5166f626494bd106c7fe32a772d3668954c7138c985bc63b32663220d51e4",
+        "overall_crime_hash": "64a3804c9e544ef19000424ff8dde4c08d79e5e5a949585634323ac77f830de1"
+    },
+    "taxonomy": {
+        "case_category": "FIR",
+        "gravity_offence": "Heinous",
+        "crime_major_head": "ASSAULT",
+        "crime_minor_head": "ASSAULT WITH DEADLY WEAPON",
+        "taxonomy_hash": "858445a2ff904973180deb905eb1f9293e26d04fcb46ecf52cd2ddd559cb574d"
+    },
+    "legal": {
+        "statutory_charges": [
+            {
+                "act_code": "IPC",
+                "section_code": "324"
+            }
+        ],
+        "legal_hash": "8dc44ac2211f271bed5f479dfe12b894da922b4edd376c811505af02e8db9cda"
+    },
+    "temporal": {
+        "incident_date_from": "2023-05-02T23:00:00+00:00Z",
+        "incident_date_to": null,
+        "info_received_date": "2023-05-03T01:00:00+00:00Z",
+        "reporting_delay_minutes": 120,
+        "day_of_week": "Tuesday",
+        "time_of_day": "Night Hours",
+        "temporal_hash": "71e875c19eea4e829329d6d2a06da212d85129589b3236b422b88f55761846de"
+    },
+    "spatial": {
+        "latitude": 13.0,
+        "longitude": 77.6,
+        "geohash": "tdr1vy",
+        "police_station_id": 2,
+        "spatial_hash": "b52a801d23e26b6ef7c550c45b8f44063390c48891d5cf8a95e3ee26597713c7"
+    },
+    "victim": {
+        "victim_count": 0,
+        "gender_distribution": "Unknown",
+        "age_distribution": "Unknown",
+        "occupation_distribution": "Unknown",
+        "police_targeted": false,
+        "victim_vulnerability_score": 0.5,
+        "victim_category": "Individual",
+        "repeat_victim_indicator": false,
+        "victim_summary": "0 victim(s) identified. Category: Individual.",
+        "victim_hash": "665fe8415978e8654f4a464e4fffb798e4c157621ff863eb0311aa8526879e0a",
+        "provenance": []
+    },
+    "accused": {
+        "accused_count": 0,
+        "gender_distribution": "Unknown",
+        "age_distribution": "Unknown",
+        "known_gang_indicator": false,
+        "repeat_offender_indicator": false,
+        "arrest_status": "Unknown",
+        "absconding_indicator": false,
+        "organization_indicator": false,
+        "criminal_history_count": 0,
+        "accused_summary": "0 accused recorded. Gang involvement: No.",
+        "accused_hash": "45b5166f626494bd106c7fe32a772d3668954c7138c985bc63b32663220d51e4",
+        "provenance": []
+    },
+    "property": {
+        "stolen_properties": [],
+        "recovered_properties": []
+    },
+    "behavioral": {
+        "entry_method": "Unknown",
+        "exit_method": null,
+        "target_selection_strategy": null,
+        "target_property_type": null,
+        "weapon_used": "Blunt/Edged Weapon",
+        "violence_used": true,
+        "force_used": false,
+        "planning_level": "Unknown",
+        "estimated_offender_count": "Unknown",
+        "vehicle_used": null,
+        "mask_used": false,
+        "communication_method": null,
+        "escape_strategy": null,
+        "forced_entry_indicator": false,
+        "professional_mo_indicator": false,
+        "behavior_tags": [
+            "Armed Assault"
+        ],
+        "behavior_confidence": 0.0,
+        "behavior_summary": "Tags: Armed Assault. Weapon: Blunt/Edged Weapon.",
+        "behavior_hash": "f2ec2cfdade4821a1e4754dc3c3094c4aefb1ae80d29dc20741ab9add9530af0",
+        "provenance": [
+            {
+                "field_name": "weapon_used",
+                "source_table": null,
+                "source_column": "brief_facts",
+                "transformation_rule": "Regex Keyword Match",
+                "is_derived": true,
+                "confidence": 0.85
+            }
+        ]
+    },
+    "investigation": {
+        "case_status": "OPEN",
+        "investigating_officer": null
+    },
+    "intelligence": {
+        "organized_crime_indicator": false,
+        "serial_crime_indicator": false,
+        "cross_district_indicator": false,
+        "holiday_crime_indicator": false,
+        "festival_crime_indicator": false,
+        "night_crime_indicator": true,
+        "professional_gang_indicator": false,
+        "crime_cluster_indicator": false,
+        "behavior_similarity_vector": null,
+        "intelligence_confidence": 0.0,
+        "intelligence_summary": "Organized Crime: False. Night Operation: True.",
+        "intelligence_hash": "dcf3a25913baf3f713a1b9dde9649e5a96a3785074f6534fd8eef12980427077",
+        "provenance": []
+    },
+    "embedding_document": {
+        "semantic_text": "### Crime Taxonomy\nCategory: FIR. Gravity: Heinous. Major Head: ASSAULT. Minor Head: ASSAULT WITH DEADLY WEAPON.\n\n### Legal Signature\nStatutory Charges: IPC 324.\n\n### Temporal Context\nDay of Week: Tuesday. Time of Day: Night Hours.\n\n### Behavior Profile\nTags: Armed Assault. Weapon: Blunt/Edged Weapon.\n\n### Victim Profile\n0 victim(s) identified. Category: Individual.\n\n### Accused Profile\n0 accused recorded. Gang involvement: No.\n\n### Crime Intelligence Indicators\nOrganized Crime: False. Night Operation: True."
+    }
+}
