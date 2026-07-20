@@ -1,7 +1,10 @@
 {
-  "app_sail": {
-    "source": "backend"
-  },
+  "appsail": [
+    {
+      "name": "crimelens_backend",
+      "source": "backend"
+    }
+  ],
   "client": {
     "source": "frontend/dist",
     "ignore": [
