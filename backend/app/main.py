@@ -28,6 +28,30 @@ from app.core.logging import configure_logging, get_logger
 logger = get_logger(__name__)
 
 
+async def load_signatures_and_warm_up_ml() -> None:
+    """
+    Background worker that initializes the database, loads the crime signatures,
+    and warms up the FAISS embedding index asynchronously. Prevents AppSail boot timeouts.
+    """
+    import asyncio
+    try:
+        from app.core.dependencies import init_db, load_signatures_from_db, get_pipeline_executor
+        logger.info("bg_db_initialization_started")
+        await init_db()
+        logger.info("bg_db_initialization_completed")
+
+        logger.info("bg_signatures_load_started")
+        await load_signatures_from_db()
+        logger.info("bg_signatures_load_completed")
+
+        logger.info("bg_ml_models_load_started")
+        loop = asyncio.get_running_loop()
+        await loop.run_in_executor(None, get_pipeline_executor)
+        logger.info("bg_ml_models_load_completed")
+    except Exception as exc:
+        logger.exception("bg_lifespan_startup_failed", error=str(exc))
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """
@@ -51,22 +75,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         debug=settings.debug,
     )
 
-    # 2. Initialize and Seed DB, load signatures and Warm up FAISS ML Models
-    try:
-        from app.core.dependencies import init_db, load_signatures_from_db, get_pipeline_executor
-        logger.info("db_initialization_started")
-        await init_db()
-        logger.info("db_initialization_completed")
-
-        logger.info("signatures_load_started")
-        await load_signatures_from_db()
-        logger.info("signatures_load_completed")
-
-        logger.info("ml_models_load_started", model_name=settings.ml_model_name)
-        get_pipeline_executor()
-        logger.info("ml_models_load_completed")
-    except Exception as exc:
-        logger.exception("lifespan_startup_failed", error=str(exc))
+    # 2. Spawn background task to initialize DB and warm up ML models without blocking boot
+    import asyncio
+    asyncio.create_task(load_signatures_and_warm_up_ml())
 
     yield
 
