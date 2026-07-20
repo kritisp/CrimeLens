@@ -19,6 +19,12 @@ jobs:
       - name: Install Catalyst CLI
         run: npm install -g zcatalyst-cli
 
+      - name: Build Frontend
+        run: |
+          cd frontend
+          npm install
+          npm run build
+
       - name: Deploy to Catalyst
         run: |
           catalyst deploy --project "${{ secrets.CATALYST_PROJECT }}" --org "${{ secrets.CATALYST_ORG }}" --token "${{ secrets.CATALYST_TOKEN }}"
