@@ -27,4 +27,4 @@ jobs:
 
       - name: Deploy to Catalyst
         run: |
-          catalyst deploy --project "${{ secrets.CATALYST_PROJECT }}" --org "${{ secrets.CATALYST_ORG }}" --dc "${{ secrets.CATALYST_DC || 'in' }}" --token "${{ secrets.CATALYST_TOKEN }}"
+          catalyst deploy --only client,appsail --project "${{ secrets.CATALYST_PROJECT }}" --org "${{ secrets.CATALYST_ORG }}" --dc "${{ secrets.CATALYST_DC || 'in' }}" --token "${{ secrets.CATALYST_TOKEN }}"
