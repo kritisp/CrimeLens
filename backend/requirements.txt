@@ -15,12 +15,12 @@ passlib[bcrypt]>=1.7.4
 aiosqlite>=0.20.0
 sqlalchemy[asyncio]>=2.0.29
 
-# Machine Learning Core (Pre-installed in ML Docker base images, listed for completeness)
-# sentence-transformers
-# faiss-cpu
+# Machine Learning Core
+sentence-transformers
+faiss-cpu
 # scikit-learn
 # pandas
-# numpy
+numpy
 
 # Zoho Catalyst Compliance SDK
 zcatalyst-sdk>=1.4.0
