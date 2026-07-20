@@ -102,3 +102,7 @@ poetry.lock
 
 # Pipenv
 Pipfile.lock
+
+# Zip files and legacy frontend
+*.zip
+frontend_legacy/

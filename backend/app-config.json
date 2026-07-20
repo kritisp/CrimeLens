@@ -1,0 +1,10 @@
+{
+  "command": "uvicorn app.main:app --host 0.0.0.0 --port $X_ZOHO_CATALYST_LISTEN_PORT",
+  "stack": "python3.10",
+  "memory": 1024,
+  "env_variables": {
+    "ENVIRONMENT": "production",
+    "DEBUG": "false",
+    "DATABASE_URL": "sqlite+aiosqlite:///./crimelens.db"
+  }
+}

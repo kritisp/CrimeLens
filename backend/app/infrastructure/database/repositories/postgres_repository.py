@@ -6,12 +6,12 @@ Subclasses the core SQLAlchemy repository implementation for PostgreSQL and Zoho
 
 from __future__ import annotations
 
-from app.infrastructure.database.repositories.sqlite_repository import SQLiteFIRRepository
+from app.infrastructure.database.repositories.catalyst_repository import CatalystFIRRepository
 
 
-class PostgresFIRRepository(SQLiteFIRRepository):
+class PostgresFIRRepository(CatalystFIRRepository):
     """
-    Decoupled SQLAlchemy-backed repository for PostgreSQL and Catalyst Data Store.
+    Decoupled repository for PostgreSQL and Catalyst Data Store.
     Provides direct migration compatibility without changing any route level dependencies.
     """
     pass

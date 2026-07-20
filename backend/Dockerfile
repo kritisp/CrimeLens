@@ -65,10 +65,9 @@ USER ksp_user
 # Executes every 30 seconds. If it fails 3 times, container status changes to unhealthy.
 # We query the liveness-probe endpoint: /api/v1/health.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-  CMD curl --fail http://localhost:8000/api/v1/health || exit 1
+  CMD curl --fail http://localhost:${X_ZOHO_CATALYST_LISTEN_PORT:-${PORT:-8000}}/api/v1/health || exit 1
 
 # Dynamic entry point command.
-# Catalyst AppSail passes a random dynamic port under the environment variable "PORT".
-# We use 'sh -c' to evaluate '${PORT:-8000}' at container startup.
-# If no PORT env variable is injected (e.g., local dev), it falls back to 8000.
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Catalyst AppSail passes a random dynamic port under the environment variable "X_ZOHO_CATALYST_LISTEN_PORT" or "PORT".
+# We use 'sh -c' to evaluate these port overrides, defaulting to 8000 for local runs.
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${X_ZOHO_CATALYST_LISTEN_PORT:-${PORT:-8000}}"]

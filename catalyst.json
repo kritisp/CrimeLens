@@ -1,0 +1,17 @@
+{
+  "app_sail": {
+    "source": "backend"
+  },
+  "client": {
+    "source": "frontend/dist",
+    "ignore": [
+      "node_modules",
+      ".git",
+      "Dockerfile",
+      "nginx.conf"
+    ],
+    "scripts": {
+      "build": "cd frontend && npm install && npm run build"
+    }
+  }
+}
