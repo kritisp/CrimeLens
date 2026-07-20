@@ -33,10 +33,10 @@ FROM python:3.12-slim AS runner
 # Set the operational directory inside the container
 WORKDIR /app
 
-# Install curl in the runner stage.
-# It is used for container orchestration and docker health probes.
+# Install curl and libgomp1 (required for FAISS C++ multi-threading) in the runner stage.
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
+    libgomp1 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy only the compiled virtual environment from the builder stage.
@@ -46,8 +46,9 @@ COPY --from=builder /opt/venv /opt/venv
 # Activate the virtual environment paths in the runner container.
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Copy only the application code folder.
+# Copy the application code folder and config settings files.
 COPY app/ /app/app/
+COPY configs/ /app/configs/
 
 # Inform Docker that the container will listen on port 8000 at runtime.
 # Note: Catalyst AppSail overrides this dynamically, but EXPOSE serves as documentation.
