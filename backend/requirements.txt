@@ -16,6 +16,8 @@ aiosqlite>=0.20.0
 sqlalchemy[asyncio]>=2.0.29
 
 # Machine Learning Core
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch
 sentence-transformers
 faiss-cpu
 # scikit-learn
