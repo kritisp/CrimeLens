@@ -2,7 +2,7 @@
   "appsail": [
     {
       "name": "crimelens-backend",
-      "source": "backend"
+      "source": "docker-archive://backend/crimelens-backend.tar"
     }
   ],
   "client": {

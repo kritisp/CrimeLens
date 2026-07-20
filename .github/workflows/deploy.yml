@@ -30,6 +30,11 @@ jobs:
           npm install
           npm run build
 
+      - name: Build Docker Image for Backend
+        run: |
+          docker build -t crimelens-backend ./backend
+          docker save crimelens-backend -o backend/crimelens-backend.tar
+
       - name: Deploy to Catalyst
         run: |
           catalyst deploy --only client,appsail --project "${{ secrets.CATALYST_PROJECT }}" --org "${{ secrets.CATALYST_ORG }}" --dc "${{ secrets.CATALYST_DC || 'in' }}" --token "${{ secrets.CATALYST_TOKEN }}"

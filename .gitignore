@@ -12,8 +12,10 @@ dist
 dist-ssr
 *.local
 
-# Zip files and legacy frontend
+# Zip and archive files and legacy frontend
 *.zip
+*.tar
+*.tar.gz
 frontend_legacy/
 
 
