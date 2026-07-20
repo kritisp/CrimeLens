@@ -21,4 +21,4 @@ jobs:
 
       - name: Deploy to Catalyst
         run: |
-          catalyst deploy --token "${{ secrets.CATALYST_TOKEN }}"
+          catalyst deploy --project "${{ secrets.CATALYST_PROJECT }}" --token "${{ secrets.CATALYST_TOKEN }}"
