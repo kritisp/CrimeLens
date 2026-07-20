@@ -7,5 +7,8 @@
     "ENVIRONMENT": "production",
     "DEBUG": "false",
     "DATABASE_URL": "sqlite+aiosqlite:///./crimelens.db"
+  },
+  "scripts": {
+    "predeploy": "pip install -r requirements.txt -t ./lib"
   }
 }

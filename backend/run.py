@@ -1,9 +1,16 @@
 import os
 import sys
-import uvicorn
 
-# Ensure the current directory is in python path
+# Dynamic inclusion of vendor/library folder for Zoho Catalyst managed runtimes.
+# In Catalyst, we install dependencies locally into the 'lib' folder at deploy time.
+lib_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib")
+if os.path.exists(lib_path):
+    sys.path.insert(0, lib_path)
+
+# Ensure the current directory is also in python path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+import uvicorn
 
 if __name__ == "__main__":
     # Zoho Catalyst AppSail injects the port into the X_ZOHO_CATALYST_LISTEN_PORT environment variable.
