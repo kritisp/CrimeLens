@@ -16,14 +16,15 @@ python-multipart>=0.0.12
 aiosqlite>=0.20.0
 sqlalchemy[asyncio]>=2.0.29
 
-# Machine Learning Core
---extra-index-url https://download.pytorch.org/whl/cpu
-torch
-sentence-transformers
-faiss-cpu
+# Machine Learning Core (API-driven Gemini embeddings + NumPy similarity math)
+# --extra-index-url https://download.pytorch.org/whl/cpu
+# torch
+# sentence-transformers
+# faiss-cpu
 # scikit-learn
 # pandas
 numpy
+google-genai
 
 # Zoho Catalyst Compliance SDK
 zcatalyst-sdk>=1.4.0

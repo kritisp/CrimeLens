@@ -1,12 +1,12 @@
 # CrimeLens AI — Machine Learning Model Registry Configurations
 
-active_model: "minilm"
+active_model: "gemini"
 
 providers:
-  minilm:
-    model_name: "all-MiniLM-L6-v2"
+  gemini:
+    model_name: "text-embedding-004"
     dimension: 384
-    provider_type: "sentence_transformers"
+    provider_type: "gemini"
     prefix: ""
     normalize: true
     mock_mode: false
