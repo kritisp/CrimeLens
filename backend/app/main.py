@@ -175,6 +175,10 @@ def create_app() -> FastAPI:
     # ── Route Mount ───────────────────────────────────────────────────────────
     app.include_router(api_router, prefix=settings.api_v1_prefix)
 
+    @app.get("/")
+    async def root():
+        return {"status": "online", "service": "CrimeLens Backend"}
+
     return app
 
 
