@@ -132,21 +132,22 @@ class SentenceTransformerProvider(EmbeddingProvider):
 class GeminiEmbeddingProvider(EmbeddingProvider):
     """
     Google Gemini Embedding Strategy Provider.
-    Calculates semantic text vectors using text-embedding-004 model.
+    Calculates semantic text vectors using text-embedding-004 model via REST API.
     """
 
     def __init__(self) -> None:
         self.model_name: Optional[str] = None
         self.dimension: Optional[int] = None
         self.mock_mode: bool = False
-        self._client: Any = None
+        self._api_key: Optional[str] = None
         self.model_version: str = "1.0.0"
         self.feature_version: str = "1.0.0"
         self.pipeline_version: str = "1.0.0"
 
     def initialize(self, config: Dict[str, Any]) -> None:
         from app.core.config import settings
-        self.model_name = config.get("model_name", "models/text-embedding-004")
+        # Model name defaults to text-embedding-004
+        self.model_name = config.get("model_name", "text-embedding-004")
         self.dimension = config.get("dimension", 384)
         self.mock_mode = config.get("mock_mode", False)
         self.model_version = config.get("model_version", "1.0.0")
@@ -154,18 +155,12 @@ class GeminiEmbeddingProvider(EmbeddingProvider):
         self.pipeline_version = config.get("pipeline_version", "1.0.0")
 
         if not self.mock_mode:
-            try:
-                from google import genai
-                api_key = settings.gemini_api_key
-                if api_key and not api_key.startswith(("INSECURE", "your_", "YOUR_", "change_")):
-                    self._client = genai.Client(api_key=api_key.strip())
-            except Exception as exc:
-                raise ModelLoadError(
-                    f"Failed to initialize Gemini GenAI client. Ensure 'google-genai' is installed: {str(exc)}"
-                ) from exc
+            api_key = settings.gemini_api_key
+            if api_key and not api_key.startswith(("INSECURE", "your_", "YOUR_", "change_")):
+                self._api_key = api_key.strip()
 
     def embed_raw(self, text: str) -> List[float]:
-        if self.mock_mode or not self._client:
+        if self.mock_mode or not self._api_key:
             # Fallback to deterministic mock calculation
             dim = self.dimension or 384
             import hashlib
@@ -177,20 +172,35 @@ class GeminiEmbeddingProvider(EmbeddingProvider):
                 vector.append(coord_val)
             return vector
 
-        # Call Google Gen AI SDK models.embed_content
+        # Call Google Generative Language REST API using standard urllib
+        import urllib.request
+        import json
+
+        model = self.model_name or "text-embedding-004"
+        if not model.startswith("models/"):
+            model = f"models/{model}"
+
+        url = f"https://generativelanguage.googleapis.com/v1beta/{model}:embedContent?key={self._api_key}"
+        payload = {
+            "content": {
+                "parts": [{"text": text}]
+            },
+            "outputDimensionality": self.dimension
+        }
+
         try:
-            from google.genai import types
-            response = self._client.models.embed_content(
-                model=self.model_name,
-                contents=text,
-                config=types.EmbedContentConfig(
-                    output_dimensionality=self.dimension,
-                )
+            req = urllib.request.Request(
+                url,
+                data=json.dumps(payload).encode("utf-8"),
+                headers={"Content-Type": "application/json"},
+                method="POST"
             )
-            return response.embeddings[0].values
+            with urllib.request.urlopen(req, timeout=10) as response:
+                res_data = json.loads(response.read().decode("utf-8"))
+                return res_data["embedding"]["values"]
         except Exception as exc:
             raise ModelLoadError(
-                f"Gemini embedding API call failed for model {self.model_name}: {str(exc)}"
+                f"Gemini embedding REST API call failed for model {self.model_name}: {str(exc)}"
             ) from exc
 
     def get_metadata(self) -> EmbeddingMetadata:
