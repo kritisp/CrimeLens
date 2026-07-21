@@ -58,8 +58,11 @@ EXPOSE 8000
 
 # Create a dedicated system user (ksp_user) with UID 10001.
 # Running as a non-root user prevents potential container-breakout security vulnerabilities.
+# Grant read-write-execute permissions (777) to `/app` so that SQLite files can be created/written to
+# by any dynamic UID/GID assigned by the Zoho serverless host container.
 RUN useradd -u 10001 ksp_user && \
-    chown -R ksp_user:ksp_user /app
+    chown -R ksp_user:ksp_user /app && \
+    chmod -R 777 /app
 
 # Switch to the non-privileged user for executing the application process.
 USER ksp_user
@@ -73,4 +76,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
 # Dynamic entry point command.
 # Catalyst AppSail passes a random dynamic port under the environment variable "X_ZOHO_CATALYST_LISTEN_PORT" or "PORT".
 # We use 'sh -c' to evaluate these port overrides, defaulting to 8000 for local runs.
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${X_ZOHO_CATALYST_LISTEN_PORT:-${PORT:-8000}}"]
+CMD ["sh", "-c", "/opt/venv/bin/uvicorn app.main:app --host 0.0.0.0 --port ${X_ZOHO_CATALYST_LISTEN_PORT:-${PORT:-8000}}"]
