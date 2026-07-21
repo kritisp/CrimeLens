@@ -121,6 +121,7 @@ def create_app() -> FastAPI:
             "http://localhost:3000",
             "http://127.0.0.1:3000",
         ],
+        allow_origin_regex=r"https://.*\.catalystserverless\..*",
         allow_credentials=settings.cors_allow_credentials,
         allow_methods=["*"],
         allow_headers=["*"],

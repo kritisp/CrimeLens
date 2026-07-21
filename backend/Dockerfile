@@ -49,6 +49,7 @@ ENV PATH="/opt/venv/bin:$PATH"
 # Copy the application code folder and config settings files.
 COPY app/ /app/app/
 COPY configs/ /app/configs/
+COPY crimelens.db* /app/
 
 # Inform Docker that the container will listen on port 9000 at runtime.
 # Note: Catalyst AppSail overrides this dynamically, but EXPOSE serves as documentation.

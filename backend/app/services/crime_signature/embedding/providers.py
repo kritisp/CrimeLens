@@ -61,10 +61,10 @@ class SentenceTransformerProvider(EmbeddingProvider):
             start_time = time.perf_counter()
             try:
                 from sentence_transformers import SentenceTransformer
-                self._model = SentenceTransformer(self.model_path)
+                self._model = SentenceTransformer(self.model_path or self.model_name)
             except Exception as exc:
                 raise ModelLoadError(
-                    f"Failed to load SentenceTransformer weights for {self.model_path}. "
+                    f"Failed to load SentenceTransformer weights for {self.model_path or self.model_name}. "
                     f"Ensure 'sentence-transformers' package is installed. Error: {str(exc)}"
                 ) from exc
             self.load_time_ms = (time.perf_counter() - start_time) * 1000.0

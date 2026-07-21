@@ -122,7 +122,11 @@ class EmbeddingOrchestrator:
                 provider_instance = provider_cls()
                 
                 # Bundle model profile configuration details
-                init_props = {**model_props, "model_name": model_code}
+                init_props = {
+                    "model_path": model_props.get("model_path") or model_props.get("model_name"),
+                    **model_props,
+                    "model_name": model_code
+                }
                 
                 # Wrap strategy provider inside EmbeddingManager lifecycle coordinator
                 manager = EmbeddingManager(provider_instance, init_props)
