@@ -52,9 +52,9 @@ COPY configs/ /app/configs/
 COPY crimelens.db* /app/
 COPY run.py /app/
 
-# Inform Docker that the container will listen on port 9000 at runtime.
+# Inform Docker that the container will listen on port 8000 at runtime.
 # Note: Catalyst AppSail overrides this dynamically, but EXPOSE serves as documentation.
-EXPOSE 9000
+EXPOSE 8000
 
 # Create a dedicated system user (ksp_user) with UID 10001.
 # Running as a non-root user prevents potential container-breakout security vulnerabilities.
@@ -68,9 +68,9 @@ USER ksp_user
 # Executes every 30 seconds. If it fails 3 times, container status changes to unhealthy.
 # We query the liveness-probe endpoint: /api/v1/health.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-  CMD curl --fail http://localhost:${X_ZOHO_CATALYST_LISTEN_PORT:-${PORT:-9000}}/api/v1/health || exit 1
+  CMD curl --fail http://localhost:${X_ZOHO_CATALYST_LISTEN_PORT:-${PORT:-8000}}/api/v1/health || exit 1
 
 # Dynamic entry point command.
 # Catalyst AppSail passes a random dynamic port under the environment variable "X_ZOHO_CATALYST_LISTEN_PORT" or "PORT".
-# We use 'sh -c' to evaluate these port overrides, defaulting to 9000 for local runs.
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${X_ZOHO_CATALYST_LISTEN_PORT:-${PORT:-9000}}"]
+# We use 'sh -c' to evaluate these port overrides, defaulting to 8000 for local runs.
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${X_ZOHO_CATALYST_LISTEN_PORT:-${PORT:-8000}}"]
