@@ -24,7 +24,8 @@ sqlalchemy[asyncio]>=2.0.29
 # scikit-learn
 # pandas
 numpy
-google-genai
+google-genai==2.13.0
+httpx>=0.28.1
 
 # Zoho Catalyst Compliance SDK
 zcatalyst-sdk>=1.4.0
