@@ -1,13 +1,15 @@
 import { useState, useEffect, useRef } from "react";
 import { 
-  Menu, X, Shield, FileText, Upload, Mic, 
-  RefreshCw, Image, Video, Music, Send, Eye, Printer
+  Menu, X, Shield, FileText, Upload, Mic, MicOff,
+  RefreshCw, Image, Video, Music, Send, Eye, Printer,
+  Volume2, VolumeX, Square
 } from "lucide-react";
 import { FIRDraftModal } from "../components/ai-assistant/FIRDraftModal";
 import { ChatWindow } from "../components/ai-assistant/ChatWindow";
 import { ConversationList } from "../components/ai-assistant/ConversationList";
 import { DashboardLayout } from "../components/layout/DashboardLayout";
 import { useChatSession } from "../hooks/useChatSession";
+import { useVoiceAssistant } from "../hooks/useVoiceAssistant";
 import { GlassCard } from "../components/ui/GlassCard";
 import type { FIRDraftPayload } from "../types/chat";
 import { InteractiveResponse } from "../components/ai-assistant/InteractiveResponse";
@@ -129,10 +131,29 @@ export function AIAssistant() {
   const [copilotInput, setCopilotInput] = useState("");
   const [copilotTyping, setCopilotTyping] = useState(false);
 
-  // --- Voice Transcription Simulated State ---
-  const [isRecording, setIsRecording] = useState(false);
-  const [recordingTime, setRecordingTime] = useState(0);
-  const recordingIntervalRef = useRef<any>(null);
+  // --- Voice Assistant Hook for Copilot Mode ---
+  const {
+    isListening: isCopilotListening,
+    transcript: copilotVoiceTranscript,
+    recordingTime: copilotRecordingTime,
+    startListening: startCopilotListening,
+    stopListening: stopCopilotListening,
+    speak: speakCopilotMsg,
+    autoSpeakEnabled: copilotAutoSpeak,
+    toggleAutoSpeak: toggleCopilotAutoSpeak,
+  } = useVoiceAssistant({
+    onTranscriptChange: (text) => setCopilotInput(text),
+    onFinalTranscript: (text) => {
+      if (text.trim()) setCopilotInput(text);
+    },
+  });
+
+  // Keep input in sync with live voice transcription
+  useEffect(() => {
+    if (copilotVoiceTranscript) {
+      setCopilotInput(copilotVoiceTranscript);
+    }
+  }, [copilotVoiceTranscript]);
 
   // --- Evidence File Upload states ---
   const [uploading, setUploading] = useState(false);
@@ -270,14 +291,18 @@ export function AIAssistant() {
       }
 
       if (resData) {
+        const textContent = resData.summary || resData.message || "";
         const aiMsg = {
           id: `copilot-msg-ai-${Date.now()}`,
           role: "assistant" as const,
-          content: resData.summary || resData.message || "",
+          content: textContent,
           timestamp: new Date().toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" }),
           data: resData
         };
         setCopilotMessages(prev => [...prev, aiMsg]);
+        if (copilotAutoSpeak && textContent) {
+          speakCopilotMsg(textContent, aiMsg.id);
+        }
       }
     } catch (err) {
       const errorMsg = {
@@ -324,48 +349,6 @@ export function AIAssistant() {
     } finally {
       setUploading(false);
     }
-  };
-
-  // Recording timer simulation
-  const startRecording = () => {
-    setIsRecording(true);
-    setRecordingTime(0);
-    recordingIntervalRef.current = setInterval(() => {
-      setRecordingTime(prev => prev + 1);
-    }, 1000);
-  };
-
-  const stopRecordingAndTranscribe = async () => {
-    clearInterval(recordingIntervalRef.current);
-    setIsRecording(false);
-    setCopilotTyping(true);
-
-    try {
-      // Send mock blob to transcribe-voice endpoint
-      const mockBlob = new Blob(["mock-audio"], { type: "audio/wav" });
-      const formData = new FormData();
-      formData.append("file", mockBlob, "voice_note.wav");
-
-      const response = await fetch("/api/v1/intelligence/transcribe-voice", {
-        method: "POST",
-        body: formData
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setCopilotInput(data.text);
-      }
-    } catch (err) {
-      console.error("Voice transcription failed:", err);
-    } finally {
-      setCopilotTyping(false);
-    }
-  };
-
-  const formatTime = (secs: number) => {
-    const mins = Math.floor(secs / 60);
-    const remainingSecs = secs % 60;
-    return `${mins}:${remainingSecs < 10 ? "0" : ""}${remainingSecs}`;
   };
 
   // PDF Generation Trigger
@@ -626,7 +609,7 @@ export function AIAssistant() {
                     key={msg.id} 
                     className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                   >
-                    <div className={`max-w-[85%] rounded-2xl p-3.5 text-xs font-mono leading-relaxed ${
+                    <div className={`relative group max-w-[85%] rounded-2xl p-3.5 text-xs font-mono leading-relaxed ${
                       msg.role === "user" 
                         ? "bg-cyan-accent/15 text-white border border-cyan-accent/30 rounded-br-none" 
                         : "bg-navy-900 border border-white/10 text-slate-300 rounded-bl-none"
@@ -637,7 +620,17 @@ export function AIAssistant() {
                         }`}>
                           {msg.role === "user" ? "Investigator Officer" : "AI Copilot Engine"}
                         </span>
-                        <span className="text-[8px] text-slate-500 ml-auto">{msg.timestamp}</span>
+                        {msg.role === "assistant" && (
+                          <button
+                            type="button"
+                            onClick={() => speakCopilotMsg(msg.content, msg.id)}
+                            title="Listen to response (TTS)"
+                            className="ml-auto text-slate-400 hover:text-cyan-accent p-0.5 rounded transition-all"
+                          >
+                            <Volume2 className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                        <span className="text-[8px] text-slate-500 ml-2">{msg.timestamp}</span>
                       </div>
                       <p className="whitespace-pre-wrap">{msg.content}</p>
                       {msg.role === "assistant" && msg.data && (
@@ -666,38 +659,41 @@ export function AIAssistant() {
               <span className="text-slate-500 uppercase font-bold">Quick Inquiries:</span>
               <button 
                 onClick={() => handleSendCopilotMessage("Suggest Similar MO (Modus Operandi) signatures in database")}
-                className="border border-white/10 rounded-full px-2.5 py-1 text-slate-300 hover:border-cyan-accent/30 hover:text-white bg-white/5"
+                className="border border-white/10 rounded-full px-2.5 py-1 text-slate-300 hover:border-cyan-accent/30 hover:text-white bg-white/5 cursor-pointer"
               >
                 Similar MOs?
               </button>
               <button 
                 onClick={() => handleSendCopilotMessage("List suspect criminal history matches")}
-                className="border border-white/10 rounded-full px-2.5 py-1 text-slate-300 hover:border-cyan-accent/30 hover:text-white bg-white/5"
+                className="border border-white/10 rounded-full px-2.5 py-1 text-slate-300 hover:border-cyan-accent/30 hover:text-white bg-white/5 cursor-pointer"
               >
                 Criminal History?
               </button>
               <button 
                 onClick={() => handleSendCopilotMessage("Draft legal witness statement template")}
-                className="border border-white/10 rounded-full px-2.5 py-1 text-slate-300 hover:border-cyan-accent/30 hover:text-white bg-white/5"
+                className="border border-white/10 rounded-full px-2.5 py-1 text-slate-300 hover:border-cyan-accent/30 hover:text-white bg-white/5 cursor-pointer"
               >
                 Witness Statement Draft?
               </button>
             </div>
 
             {/* Voice Transcription Indicator Overlay */}
-            {isRecording && (
-              <div className="mx-4 my-2 p-3 bg-red-950/20 border border-red-500/20 rounded-xl flex items-center justify-between animate-pulse">
+            {isCopilotListening && (
+              <div className="mx-4 my-2 p-3 bg-rose-950/30 border border-rose-500/30 rounded-xl flex items-center justify-between animate-pulse font-mono">
                 <div className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-red-500" />
-                  <span className="text-[10px] text-red-400 font-mono font-bold">
-                    Microphone active - Listening... ({formatTime(recordingTime)})
+                  <span className="h-2.5 w-2.5 rounded-full bg-rose-500 animate-ping" />
+                  <span className="text-[10px] text-rose-300 font-bold">
+                    Microphone Active — Listening to Voice Narration... ({Math.floor(copilotRecordingTime / 60)}:{(copilotRecordingTime % 60 < 10 ? "0" : "") + (copilotRecordingTime % 60)})
                   </span>
                 </div>
                 <button 
-                  onClick={stopRecordingAndTranscribe}
-                  className="bg-red-500 text-white font-mono font-bold text-[9px] px-2.5 py-1 rounded"
+                  onClick={async () => {
+                    const text = await stopCopilotListening();
+                    if (text.trim()) setCopilotInput(text);
+                  }}
+                  className="bg-rose-500 hover:bg-rose-600 text-white font-bold text-[9px] px-2.5 py-1 rounded flex items-center gap-1 cursor-pointer"
                 >
-                  Stop & Transcribe
+                  <Square className="h-3 w-3 fill-current" /> Stop & Insert Text
                 </button>
               </div>
             )}
@@ -706,23 +702,44 @@ export function AIAssistant() {
             <div className="border-t border-white/10 bg-navy-900/80 p-3.5 backdrop-blur-xl shrink-0">
               <div className="mx-auto max-w-3xl flex items-end gap-2 bg-navy-950/60 border border-white/10 rounded-2xl p-2 shadow-card">
                 
-                {/* Voice Translator Trigger */}
+                {/* Voice Auto-Speech Toggle */}
                 <button
                   type="button"
-                  onClick={isRecording ? stopRecordingAndTranscribe : startRecording}
-                  title={isRecording ? "Stop voice recording" : "Record voice narration & transcribe"}
-                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all duration-300 ${
-                    isRecording ? "bg-red-500/20 text-red-500 animate-pulse" : "text-slate-400 hover:text-white bg-white/5 hover:bg-white/10"
+                  onClick={toggleCopilotAutoSpeak}
+                  title={copilotAutoSpeak ? "Voice Auto-Speech ON (AI speaks responses)" : "Voice Auto-Speech OFF"}
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all duration-300 cursor-pointer ${
+                    copilotAutoSpeak
+                      ? "bg-cyan-accent/20 text-cyan-accent border border-cyan-accent/40 shadow-glow"
+                      : "text-slate-500 hover:text-slate-300 hover:bg-white/[0.04]"
                   }`}
                 >
-                  <Mic className="h-5 w-5" />
+                  {copilotAutoSpeak ? <Volume2 className="h-5 w-5 animate-pulse" /> : <VolumeX className="h-5 w-5" />}
+                </button>
+
+                {/* Voice Input Trigger */}
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (isCopilotListening) {
+                      const text = await stopCopilotListening();
+                      if (text.trim()) setCopilotInput(text);
+                    } else {
+                      startCopilotListening();
+                    }
+                  }}
+                  title={isCopilotListening ? "Stop voice recording" : "Click to Speak (Speech-to-Text Voice Assistant)"}
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all duration-300 cursor-pointer ${
+                    isCopilotListening ? "bg-rose-500 text-white shadow-glow animate-bounce" : "text-slate-400 hover:text-white bg-white/5 hover:bg-white/10"
+                  }`}
+                >
+                  {isCopilotListening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
                 </button>
 
                 <textarea
                   value={copilotInput}
                   onChange={(e) => setCopilotInput(e.target.value)}
                   disabled={copilotTyping}
-                  placeholder="Query case details, ask AI recommendations, or trace suspect MO..."
+                  placeholder={isCopilotListening ? "Listening to your voice... Speak inquiry details..." : "Query case details, ask AI recommendations, or trace suspect MO..."}
                   rows={1}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
@@ -737,13 +754,14 @@ export function AIAssistant() {
                   type="button"
                   disabled={!copilotInput.trim() || copilotTyping}
                   onClick={() => handleSendCopilotMessage(copilotInput)}
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-accent to-cyan-glow text-navy-950 transition-all duration-300 hover:shadow-glow disabled:cursor-not-allowed disabled:opacity-40"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-accent to-cyan-glow text-navy-950 transition-all duration-300 hover:shadow-glow disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
                 >
                   <Send className="h-4 w-4" />
                 </button>
               </div>
-              <p className="mt-1.5 text-center text-[9px] text-slate-600 font-mono">
-                Copilot queries are secured and cached locally. Reference case ID: {selectedCaseId.slice(0, 8)}
+              <p className="mt-1.5 text-center text-[9px] text-slate-600 font-mono flex items-center justify-center gap-1.5">
+                <span>Reference case ID: {selectedCaseId.slice(0, 8)}</span>
+                {copilotAutoSpeak && <span className="text-cyan-accent font-bold">🔊 Voice Auto-Speech Active</span>}
               </p>
             </div>
 

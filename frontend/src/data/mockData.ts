@@ -182,14 +182,14 @@ export const notifications = [
     id: "n1",
     message: "FIR/2026/1847 assigned to Investigating Officer.",
     time: "10 minutes ago",
-    href: "/cases?selected=1",
+    href: "/cases/1",
     read: false,
   },
   {
     id: "n2",
     message: "Cyber fraud case escalated to critical priority.",
     time: "1 hour ago",
-    href: "/cases?selected=2",
+    href: "/cases/2",
     read: false,
   },
   {
