@@ -65,7 +65,7 @@ export function ChatWindow({
               </div>
             </div>
           )}
-          {conversation.isComplete && (
+          {(conversation.isComplete || conversation.messages.some((m) => m.role === "user")) && (
             <GenerateFIRDraftButton
               onClick={onGenerateFirDraft}
               disabled={isTyping}

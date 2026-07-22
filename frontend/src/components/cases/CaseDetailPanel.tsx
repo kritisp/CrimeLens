@@ -1,16 +1,19 @@
 import { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { 
   X, Shield, AlertTriangle, CheckCircle, Clock, 
   MapPin, Users, Bot, BookOpen, FileText, Download, 
-  Printer, Pin, Plus, Eye, File, Network, Cpu, Lock
+  Printer, Pin, Plus, Eye, File, Cpu, Lock, ArrowUpRight
 } from "lucide-react";
 import { jsPDF } from "jspdf";
-import { CaseNetworkExplorer } from "./CaseNetworkExplorer";
 import type { FIRRecord } from "../../types";
 import { Badge } from "../ui/Badge";
 import { GlassCard } from "../ui/GlassCard";
+import { ReassignCommanderModal } from "./modals/ReassignCommanderModal";
+import { ChargesheetCompilerModal } from "./modals/ChargesheetCompilerModal";
+import { CrossMatchMatricesModal } from "./modals/CrossMatchMatricesModal";
 
 interface CaseDetailPanelProps {
   record: FIRRecord;
@@ -18,9 +21,15 @@ interface CaseDetailPanelProps {
 }
 
 export function CaseDetailPanel({ record, onClose }: CaseDetailPanelProps) {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<string>("overview");
   const [dossierData, setDossierData] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
+
+  // Tactical Modal States
+  const [isReassignModalOpen, setIsReassignModalOpen] = useState(false);
+  const [isChargesheetModalOpen, setIsChargesheetModalOpen] = useState(false);
+  const [isCrossMatchModalOpen, setIsCrossMatchModalOpen] = useState(false);
   
   // Interactive Gallery States
   const [activeGalleryMedia, setActiveGalleryMedia] = useState<any>(null);
@@ -293,7 +302,6 @@ export function CaseDetailPanel({ record, onClose }: CaseDetailPanelProps) {
                 { id: "overview", label: "Overview & Risk", icon: Shield },
                 { id: "incident", label: "Incident Parameters", icon: MapPin },
                 { id: "people", label: "Associated Parties", icon: Users },
-                { id: "network", label: "Intelligence Network", icon: Network },
                 { id: "evidence", label: "Evidence Gallery", icon: FileText },
                 { id: "timeline", label: "Timeline Log", icon: Clock },
                 { id: "legal", label: "Legal & AI Summary", icon: BookOpen },
@@ -345,7 +353,6 @@ export function CaseDetailPanel({ record, onClose }: CaseDetailPanelProps) {
               { id: "overview", label: "Overview" },
               { id: "incident", label: "Incident" },
               { id: "people", label: "Parties" },
-              { id: "network", label: "Network" },
               { id: "evidence", label: "Evidence" },
               { id: "timeline", label: "Timeline" },
               { id: "legal", label: "Legal" },
@@ -1161,9 +1168,7 @@ export function CaseDetailPanel({ record, onClose }: CaseDetailPanelProps) {
               </div>
             )}
 
-            {activeTab === "network" && (
-              <CaseNetworkExplorer caseId={record.id} />
-            )}
+
 
           </div>
 
@@ -1173,9 +1178,7 @@ export function CaseDetailPanel({ record, onClose }: CaseDetailPanelProps) {
             
             <div className="space-y-2">
               <button 
-                onClick={() => {
-                  alert(`Re-assigning case officer for ${overview.firNumber}`);
-                }}
+                onClick={() => setIsReassignModalOpen(true)}
                 className="w-full flex items-center justify-between p-2.5 rounded-xl border border-white/5 bg-white/[0.01] hover:bg-white/[0.03] text-xs font-semibold text-slate-300 transition-all text-left"
               >
                 <span>Re-assign Commander</span>
@@ -1183,9 +1186,7 @@ export function CaseDetailPanel({ record, onClose }: CaseDetailPanelProps) {
               </button>
 
               <button 
-                onClick={() => {
-                  alert(`Generating legal chargesheet draft for ${overview.firNumber}`);
-                }}
+                onClick={() => setIsChargesheetModalOpen(true)}
                 className="w-full flex items-center justify-between p-2.5 rounded-xl border border-white/5 bg-white/[0.01] hover:bg-white/[0.03] text-xs font-semibold text-slate-300 transition-all text-left"
               >
                 <span>Chargesheet Compiler</span>
@@ -1193,9 +1194,7 @@ export function CaseDetailPanel({ record, onClose }: CaseDetailPanelProps) {
               </button>
 
               <button 
-                onClick={() => {
-                  alert(`Accessing related cases for ${overview.firNumber}`);
-                }}
+                onClick={() => setIsCrossMatchModalOpen(true)}
                 className="w-full flex items-center justify-between p-2.5 rounded-xl border border-white/5 bg-white/[0.01] hover:bg-white/[0.03] text-xs font-semibold text-slate-300 transition-all text-left"
               >
                 <span>Cross-match Matrices</span>
@@ -1208,9 +1207,15 @@ export function CaseDetailPanel({ record, onClose }: CaseDetailPanelProps) {
               <span className="text-[8.5px] font-bold text-slate-500 uppercase tracking-wider block">AI Match Indexes</span>
               
               {linkedCases.map((lc: any) => (
-                <div key={lc.firNumber} className="p-2.5 rounded-xl border border-cyan-500/10 bg-cyan-950/20 text-slate-300 space-y-1">
+                <div
+                  key={lc.firNumber}
+                  onClick={() => navigate(`/cases/${lc.firNumber}`)}
+                  className="p-2.5 rounded-xl border border-cyan-500/10 bg-cyan-950/20 text-slate-300 space-y-1 cursor-pointer hover:border-cyan-accent/40 hover:bg-cyan-950/50 transition-all"
+                >
                   <div className="flex justify-between items-center text-xs font-bold text-cyan-accent">
-                    <span>{lc.firNumber}</span>
+                    <span className="flex items-center gap-1 hover:underline">
+                      {lc.firNumber} <ArrowUpRight className="h-3 w-3" />
+                    </span>
                     <span>{lc.similarity}%</span>
                   </div>
                   <p className="text-[9px] leading-normal text-slate-400">{lc.reason}</p>
@@ -1220,6 +1225,71 @@ export function CaseDetailPanel({ record, onClose }: CaseDetailPanelProps) {
           </div>
 
         </div>
+
+        {/* Tactical Feature Modals */}
+        <ReassignCommanderModal
+          isOpen={isReassignModalOpen}
+          onClose={() => setIsReassignModalOpen(false)}
+          currentCommander={overview.assignedOfficer}
+          firNumber={overview.firNumber}
+          onReassign={(newCommander, reason) => {
+            setDossierData((prev: any) => ({
+              ...prev,
+              overview: {
+                ...prev.overview,
+                assignedOfficer: newCommander,
+              },
+              activityLog: [
+                {
+                  id: `log-${Date.now()}`,
+                  action: "Commander Re-assignment",
+                  date: new Date().toISOString().split("T")[0],
+                  time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+                  ip: "10.14.22.8",
+                  device: "Command Console",
+                  details: `Transferred to ${newCommander}. Protocol: ${reason}`,
+                },
+                ...(prev.activityLog || []),
+              ],
+            }));
+          }}
+        />
+
+        <ChargesheetCompilerModal
+          isOpen={isChargesheetModalOpen}
+          onClose={() => setIsChargesheetModalOpen(false)}
+          dossierData={dossierData}
+          onFileChargesheet={() => {
+            setDossierData((prev: any) => ({
+              ...prev,
+              overview: {
+                ...prev.overview,
+                investigationStage: "Chargesheet Filed",
+                currentStatus: "Chargesheet Submitted",
+              },
+            }));
+          }}
+        />
+
+        <CrossMatchMatricesModal
+          isOpen={isCrossMatchModalOpen}
+          onClose={() => setIsCrossMatchModalOpen(false)}
+          currentCaseId={record.id}
+          firNumber={overview.firNumber}
+          onLinkCase={(matchedFir) => {
+            setDossierData((prev: any) => ({
+              ...prev,
+              linkedCases: [
+                {
+                  firNumber: matchedFir,
+                  similarity: 94,
+                  reason: "Linked via Cross-match intelligence matrix analysis",
+                },
+                ...(prev.linkedCases || []),
+              ],
+            }));
+          }}
+        />
 
       </GlassCard>
     </div>

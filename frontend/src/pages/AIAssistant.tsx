@@ -201,7 +201,7 @@ export function AIAssistant() {
 
   // Handle Legacy Intake FIR Generation
   const handleGenerateFirDraft = async () => {
-    if (!activeConversation?.isComplete || isTyping) return;
+    if (isTyping) return;
     const draft = await generateFirDraft();
     if (draft) {
       setFirDraft(draft);

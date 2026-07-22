@@ -167,7 +167,7 @@ export function useChatSession() {
     if (isLoading) return null;
 
     const current = conversations.find((c) => c.id === activeId);
-    if (!current?.isComplete) return null;
+    if (!current || !current.messages.some((m) => m.role === "user")) return null;
 
     setIsLoading(true);
 

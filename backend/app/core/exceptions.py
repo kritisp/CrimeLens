@@ -148,3 +148,13 @@ class DataIntegrityError(CrimeLensException):
 
     status_code = HTTPStatus.INTERNAL_SERVER_ERROR.value
     default_message = "A data integrity error was detected. Please contact support."
+
+
+class AIProviderError(CrimeLensException):
+    """
+    HTTP 500 — An AI engine or LLM provider operation failed.
+    Raised by the AI service layer when model generation or parsing fails.
+    """
+
+    status_code = HTTPStatus.INTERNAL_SERVER_ERROR.value
+    default_message = "The AI service encountered an error. Please try again."

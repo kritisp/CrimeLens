@@ -2107,37 +2107,28 @@ async def query_case(payload: CopilotQueryRequest, db: Session = Depends(get_db)
     complainant_name = case.complainants[0].name if case.complainants else "Unknown"
     officer_name = case.officer.name if case.officer else "SI Ananya Reddy"
     station_name = case.station.name if case.station else "Indiranagar PS"
-    category = case.crime_sub_head.crime_head.name if (case.crime_sub_head and case.crime_sub_head.crime_head) else "Other"
     
     # 2. Fetch Evidence Context
     files = db.query(CopilotFile).filter(CopilotFile.case_id == case_id).all()
     entities = db.query(CopilotEntity).filter(CopilotEntity.case_id == case_id).all()
     
-    evidence_descriptions = [f"{f.filename} ({f.file_type}): {f.summary or ''}" for f in files]
-    entity_descriptions = [f"{e.name} ({e.category}): {e.details or ''}" for e in entities]
+    case_info = {
+        "firNumber": case.fir_number,
+        "complainant": complainant_name,
+        "offense": case.offense_description,
+        "station": station_name,
+        "status": case.status
+    }
+    evidence_files = [{"filename": f.filename, "file_type": f.file_type, "summary": f.summary or ""} for f in files]
+    extracted_entities = [{"name": e.name, "category": e.category, "details": e.details or ""} for e in entities]
     
-    # Ground the response
     ai_service = get_gemini_service()
-    
-    prompt = (
-        f"You are an experienced Investigating Officer AI Copilot. Guide the officer on this case. "
-        f"Case Details:\n"
-        f"- FIR Number: {case.fir_number}\n"
-        f"- Complainant: {complainant_name}\n"
-        f"- Offense Description: {case.offense_description}\n"
-        f"- Assigned Officer: {officer_name}\n"
-        f"- Police Station: {station_name}\n"
-        f"- Category: {category}\n"
-        f"- Status: {case.status}\n\n"
-        f"Uploaded Evidence Files:\n"
-        + "\n".join(evidence_descriptions) + "\n\n"
-        f"Extracted Entities:\n"
-        + "\n".join(entity_descriptions) + "\n\n"
-        f"Officer Query: {payload.message}\n"
-        f"Provide a comprehensive, evidence-backed answer that references case details, timeline events, or specific files when relevant."
+    response_text = await ai_service.query_case_copilot(
+        case_info=case_info,
+        evidence_files=evidence_files,
+        entities=extracted_entities,
+        user_query=payload.message
     )
-    
-    response_text = await ai_service.generate_intelligence_briefing(prompt)
     
     return {
         "message": response_text

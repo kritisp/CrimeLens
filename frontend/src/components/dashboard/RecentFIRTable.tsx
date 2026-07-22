@@ -1,4 +1,4 @@
-import { ArrowUpRight, MoreHorizontal } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { FIRRecord } from "../../types";
@@ -75,8 +75,14 @@ export function RecentFIRTable({
                 key={record.id}
                 onMouseEnter={() => setHoveredRow(record.id)}
                 onMouseLeave={() => setHoveredRow(null)}
-                onClick={() => onSelectRecord?.(record.id)}
-                className={`cursor-pointer border-b border-white/[0.03] transition-all duration-200 ${
+                onClick={() => {
+                  if (onSelectRecord) {
+                    onSelectRecord(record.id);
+                  } else {
+                    navigate(`/cases/${record.id}`);
+                  }
+                }}
+                className={`group cursor-pointer border-b border-white/[0.03] transition-all duration-200 ${
                   selectedId === record.id
                     ? "bg-cyan-accent/[0.08]"
                     : hoveredRow === record.id
@@ -85,7 +91,7 @@ export function RecentFIRTable({
                 }`}
               >
                 <td className="px-5 py-3.5">
-                  <span className="font-mono text-sm font-medium text-cyan-accent">
+                  <span className="font-mono text-sm font-medium text-cyan-accent flex items-center gap-1.5 hover:underline">
                     {record.firNumber}
                   </span>
                 </td>
@@ -118,25 +124,22 @@ export function RecentFIRTable({
                     status={record.status}
                   />
                 </td>
-                <td className="px-5 py-3.5">
+                <td className="px-5 py-3.5 flex items-center justify-end gap-1">
                   <button
                     type="button"
+                    title="Open Case Page"
                     onClick={(event) => {
                       event.stopPropagation();
                       if (onSelectRecord) {
                         onSelectRecord(record.id);
                       } else {
-                        navigate(`/cases?selected=${record.id}`);
+                        navigate(`/cases/${record.id}`);
                       }
                     }}
-                    className={`rounded-lg p-1.5 text-slate-500 transition-all duration-200 ${
-                      hoveredRow === record.id
-                        ? "opacity-100 hover:bg-white/[0.06] hover:text-white"
-                        : "opacity-0"
-                    }`}
-                    aria-label="More options"
+                    className="rounded-lg p-1.5 text-cyan-accent transition-all duration-200 opacity-60 hover:opacity-100 hover:bg-cyan-accent/15"
+                    aria-label="Open Case"
                   >
-                    <MoreHorizontal className="h-4 w-4" />
+                    <ArrowUpRight className="h-4 w-4" />
                   </button>
                 </td>
               </tr>

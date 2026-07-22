@@ -41,7 +41,7 @@ export function InteractiveResponse({ data }: InteractiveResponseProps) {
   const handleAction = (action: string) => {
     if (action === "open_case" && data.caseId) {
       const cleanId = String(data.caseId).replace("FIR-", "");
-      navigate(`/cases?selected=${cleanId}`);
+      navigate(`/cases/${cleanId}`);
     } else if (action === "open_network") {
       navigate("/network");
     } else if (action === "generate_report") {
@@ -125,10 +125,10 @@ export function InteractiveResponse({ data }: InteractiveResponseProps) {
               </div>
               <div className="my-1.5 min-w-0">
                 <div className="text-[11px] font-bold text-white group-hover:text-emerald-400 transition-colors truncate">
-                  Hotspots: {data.heatmapPreview!.hotspots[0]}
+                  Hotspots: {data.heatmapPreview?.hotspots?.[0] || "Central Layout"}
                 </div>
                 <div className="text-[9px] text-slate-500 truncate mt-0.5">
-                  Density: {data.heatmapPreview!.density} • Areas: {data.heatmapPreview!.hotspots.slice(1).join(', ')}
+                  Density: {data.heatmapPreview?.density || "Medium"} • Areas: {data.heatmapPreview?.hotspots?.slice(1).join(', ') || "Perimeter"}
                 </div>
               </div>
               <div className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest text-emerald-400">

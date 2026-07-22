@@ -44,6 +44,15 @@ except Exception as exc:
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+try:
+    from app.db.base import Base
+    import app.models.normalized  # noqa
+    import app.models.copilot     # noqa
+    import app.models.fir         # noqa
+    Base.metadata.create_all(bind=engine)
+except Exception as _e:
+    logger.warning(f"Auto create_all table setup note: {_e}")
+
 def get_db() -> Generator[Session, None, None]:
     db = SessionLocal()
     try:

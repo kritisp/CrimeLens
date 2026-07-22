@@ -32,8 +32,11 @@ async def query_chatbot(body: Dict[str, Any], db: AsyncSession = Depends(get_db)
     # 1. Search for keyword playbook matches first
     lower_query = query_text.lower()
     
-    repo = SQLiteFIRRepository(db)
-    cases = await repo.list_raw_firs()
+    try:
+        repo = SQLiteFIRRepository(db)
+        cases = await repo.list_raw_firs()
+    except Exception:
+        cases = []
     
     if "vehicle" in lower_query or "theft" in lower_query or "division" in lower_query:
         # Filter vehicle theft cases in database

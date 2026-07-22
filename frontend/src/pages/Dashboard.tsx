@@ -1,11 +1,12 @@
 import { useEffect, useState, useRef, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { 
   Shield, AlertTriangle, Bot, MapPin, 
   Layers, TrendingUp, RefreshCw, 
   FileText, X, Clock, CheckCircle, Cpu, 
-  Send, AlertCircle, BookOpen
+  Send, AlertCircle, BookOpen, ArrowUpRight
 } from "lucide-react";
 import { QuickActions } from "../components/dashboard/QuickActions";
 import { FIRFiltersPanel } from "../components/dashboard/FIRFiltersPanel";
@@ -105,6 +106,7 @@ function toggleValue<T extends string>(values: T[], value: T) {
 }
 
 export function Dashboard() {
+  const navigate = useNavigate();
   const miniMapContainerRef = useRef<HTMLDivElement>(null);
   const miniMapRef = useRef<L.Map | null>(null);
 
@@ -534,6 +536,7 @@ export function Dashboard() {
                   searchQuery={searchQuery}
                   statusFilters={statusFilters}
                   priorityFilters={priorityFilters}
+                  onSelectRecord={(id) => navigate(`/cases/${id}`)}
                 />
               </div>
 
@@ -635,9 +638,15 @@ export function Dashboard() {
                     {activeDetailCard === "active_cases" && (
                       <div className="space-y-2">
                         {records.filter(r => r.status === "pending" || r.status === "investigating").slice(0, 8).map(r => (
-                          <div key={r.id} className="p-3 rounded-lg border border-white/5 bg-white/[0.02] flex items-center justify-between">
+                          <div
+                            key={r.id}
+                            onClick={() => navigate(`/cases/${r.id}`)}
+                            className="p-3 rounded-lg border border-white/5 bg-white/[0.02] flex items-center justify-between cursor-pointer hover:border-cyan-accent/30 hover:bg-cyan-accent/5 transition-all"
+                          >
                             <div>
-                              <p className="text-xs font-bold text-white font-mono">{r.firNumber}</p>
+                              <p className="text-xs font-bold text-white font-mono flex items-center gap-1.5 hover:underline">
+                                {r.firNumber} <ArrowUpRight className="h-3 w-3 text-cyan-accent" />
+                              </p>
                               <p className="text-[10px] text-slate-400">{r.offense} — Assigned: {r.officer}</p>
                             </div>
                             <span className="text-[9px] px-2 py-0.5 rounded border border-cyan-400 bg-cyan-950/80 text-cyan-400 uppercase font-mono">{r.status}</span>
@@ -648,9 +657,15 @@ export function Dashboard() {
                     {activeDetailCard === "critical_cases" && (
                       <div className="space-y-2">
                         {records.filter(r => r.priority === "critical").map(r => (
-                          <div key={r.id} className="p-3 rounded-lg border border-rose-500/20 bg-rose-950/20 flex items-center justify-between">
+                          <div
+                            key={r.id}
+                            onClick={() => navigate(`/cases/${r.id}`)}
+                            className="p-3 rounded-lg border border-rose-500/20 bg-rose-950/20 flex items-center justify-between cursor-pointer hover:border-rose-500/40 hover:bg-rose-950/40 transition-all"
+                          >
                             <div>
-                              <p className="text-xs font-bold text-rose-300 font-mono">{r.firNumber}</p>
+                              <p className="text-xs font-bold text-rose-300 font-mono flex items-center gap-1.5 hover:underline">
+                                {r.firNumber} <ArrowUpRight className="h-3 w-3 text-rose-400" />
+                              </p>
                               <p className="text-[10px] text-slate-300">{r.offense} ({r.station})</p>
                             </div>
                             <span className="text-[9px] px-2 py-0.5 rounded border border-rose-500 bg-rose-950 text-rose-300 uppercase font-mono font-bold animate-pulse">Critical</span>
@@ -661,9 +676,15 @@ export function Dashboard() {
                     {activeDetailCard === "solved_cases" && (
                       <div className="space-y-2">
                         {records.filter(r => r.status === "solved" || r.status === "closed").slice(0, 8).map(r => (
-                          <div key={r.id} className="p-3 rounded-lg border border-emerald-500/20 bg-emerald-950/20 flex items-center justify-between">
+                          <div
+                            key={r.id}
+                            onClick={() => navigate(`/cases/${r.id}`)}
+                            className="p-3 rounded-lg border border-emerald-500/20 bg-emerald-950/20 flex items-center justify-between cursor-pointer hover:border-emerald-500/40 hover:bg-emerald-950/40 transition-all"
+                          >
                             <div>
-                              <p className="text-xs font-bold text-emerald-300 font-mono">{r.firNumber}</p>
+                              <p className="text-xs font-bold text-emerald-300 font-mono flex items-center gap-1.5 hover:underline">
+                                {r.firNumber} <ArrowUpRight className="h-3 w-3 text-emerald-400" />
+                              </p>
                               <p className="text-[10px] text-slate-300">{r.offense} — Closed on: {new Date(r.date).toLocaleDateString()}</p>
                             </div>
                             <span className="text-[9px] px-2 py-0.5 rounded border border-emerald-500 bg-emerald-950 text-emerald-300 uppercase font-mono">CS FILED</span>
@@ -789,7 +810,14 @@ export function Dashboard() {
                     <span className="text-[9px] uppercase font-bold text-slate-500 block mb-1.5">Matching Previous Cases</span>
                     <div className="flex flex-wrap gap-1">
                       {selectedSignature.matchingCases.map(c => (
-                        <span key={c} className="text-[9px] px-2 py-0.5 rounded border border-cyan-500/20 bg-cyan-950/70 text-cyan-400 font-mono font-bold">{c}</span>
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => navigate(`/cases/${c}`)}
+                          className="text-[9px] px-2 py-0.5 rounded border border-cyan-500/20 bg-cyan-950/70 text-cyan-400 font-mono font-bold hover:bg-cyan-accent/20 hover:border-cyan-accent/50 transition-all cursor-pointer"
+                        >
+                          {c}
+                        </button>
                       ))}
                     </div>
                   </div>

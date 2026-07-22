@@ -1,6 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
-import { CaseDetailPanel } from "../components/cases/CaseDetailPanel";
+import { useEffect, useState } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { RecentFIRTable } from "../components/dashboard/RecentFIRTable";
 import { SearchBar } from "../components/dashboard/SearchBar";
 import { FIRFiltersPanel } from "../components/dashboard/FIRFiltersPanel";
@@ -17,6 +16,7 @@ function toggleValue<T extends string>(values: T[], value: T) {
 
 export function Cases() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState(searchParams.get("query") ?? "");
   const [showFilters, setShowFilters] = useState(false);
   const [statusFilters, setStatusFilters] = useState<FIRStatus[]>([]);
@@ -25,18 +25,17 @@ export function Cases() {
   const selectedId = searchParams.get("selected");
 
   useEffect(() => {
+    if (selectedId) {
+      navigate(`/cases/${selectedId}`);
+      return;
+    }
     const query = searchParams.get("query") ?? "";
     const status = parseStatusParam(searchParams.get("status"));
 
     setSearchQuery(query);
     setStatusFilters(status ? [status] : []);
     setShowFilters(Boolean(status));
-  }, [searchParams]);
-
-  const selectedRecord = useMemo(
-    () => recentFIRs.find((record) => record.id === selectedId) ?? null,
-    [selectedId]
-  );
+  }, [searchParams, selectedId, navigate]);
 
   const updateSearchParams = (updates: Record<string, string | null>) => {
     const next = new URLSearchParams(searchParams);
@@ -55,7 +54,7 @@ export function Cases() {
             All Cases
           </h1>
           <p className="mt-1 text-sm text-slate-400">
-            Search and filter FIRs across stations, officers, and priority levels.
+            Search and filter FIRs across stations, officers, and priority levels. Click any case record to open in a dedicated full page dossier view.
           </p>
         </div>
 
@@ -87,20 +86,13 @@ export function Cases() {
           />
         )}
 
-        {selectedRecord && (
-          <CaseDetailPanel
-            record={selectedRecord}
-            onClose={() => updateSearchParams({ selected: null })}
-          />
-        )}
-
         <RecentFIRTable
           records={recentFIRs}
           searchQuery={searchQuery}
           statusFilters={statusFilters}
           priorityFilters={priorityFilters}
           selectedId={selectedId}
-          onSelectRecord={(id) => updateSearchParams({ selected: id })}
+          onSelectRecord={(id) => navigate(`/cases/${id}`)}
         />
       </div>
     </DashboardLayout>

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import {
@@ -86,6 +87,7 @@ function generateMockCoords(count: number, variance = 0.05): [number, number][] 
 
 // ─── Main Component ───────────────────────────────────────────────────────
 export function CrimeIntelligence() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<TabId>("map");
 
   // Map refs
@@ -1173,7 +1175,14 @@ export function CrimeIntelligence() {
                           <p className="text-[10px] uppercase font-bold text-slate-500 mb-2 tracking-wider">Matching Cases</p>
                           <div className="flex flex-wrap gap-1.5">
                             {sig.matchingCases.map(c => (
-                              <span key={c} className="text-[10px] font-mono px-2 py-0.5 rounded border border-cyan-accent/20 bg-cyan-accent/5 text-cyan-accent">{c}</span>
+                              <button
+                                key={c}
+                                type="button"
+                                onClick={() => navigate(`/cases/${c}`)}
+                                className="text-[10px] font-mono px-2 py-0.5 rounded border border-cyan-accent/20 bg-cyan-accent/5 text-cyan-accent hover:bg-cyan-accent/20 hover:border-cyan-accent/50 transition-all cursor-pointer"
+                              >
+                                {c}
+                              </button>
                             ))}
                           </div>
                           <p className="text-[10px] uppercase font-bold text-slate-500 mb-2 mt-3 tracking-wider">AI Explanation</p>

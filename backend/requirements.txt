@@ -10,6 +10,7 @@ structlog>=24.1.0
 # Security & Credentials
 python-jose[cryptography]>=3.3.0
 passlib[bcrypt]>=1.7.4
+python-multipart>=0.0.12
 
 # Database Orchestration
 aiosqlite>=0.20.0

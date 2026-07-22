@@ -19,7 +19,7 @@ def _normalize_history(messages: list[dict[str, str]]) -> list[dict[str, str]]:
 
 def _conversation_ready(messages: list[dict[str, str]]) -> bool:
     user_messages = [message for message in messages if message["role"] == "user"]
-    return len(user_messages) >= 3 and len(messages) >= 4
+    return len(user_messages) >= 1
 
 
 class GeminiAIService(AIService):
@@ -69,15 +69,8 @@ class GeminiAIService(AIService):
                 "Not enough information collected yet. Continue the conversation before generating a draft."
             )
 
-        latest_message = (
-            "Generate the complete FIR draft JSON from the conversation above."
-        )
         try:
-            raw_reply = await self._service.chat(
-                message=latest_message,
-                system_prompt=FIR_DRAFT_PROMPT_EN,
-                history=normalized_messages,
-            )
+            raw_reply = await self._service.generate_draft_response(normalized_messages)
         except RuntimeError as exc:
             raise AIProviderError(str(exc)) from exc
 

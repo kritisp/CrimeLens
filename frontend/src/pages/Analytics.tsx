@@ -674,7 +674,7 @@ export function Analytics() {
             {filteredCases.map((record) => (
               <Link
                 key={record.id}
-                to={`/cases?selected=${record.id}`}
+                to={`/cases/${record.id}`}
                 className="flex items-center justify-between px-5 py-4 transition-colors hover:bg-white/[0.03]"
               >
                 <div>

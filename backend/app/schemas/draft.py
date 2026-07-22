@@ -4,7 +4,7 @@ from app.schemas.chat import ChatMessageSchema
 
 
 class GenerateDraftRequest(BaseModel):
-    messages: list[ChatMessageSchema] = Field(..., min_length=2, max_length=100)
+    messages: list[ChatMessageSchema] = Field(..., min_length=1, max_length=100)
     language: str = Field(default="en", min_length=2, max_length=10)
 
 

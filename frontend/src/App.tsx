@@ -2,6 +2,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Analytics } from "./pages/Analytics";
 import { AIAssistant } from "./pages/AIAssistant";
 import { Cases } from "./pages/Cases";
+import { CaseDetailPage } from "./pages/CaseDetailPage";
 import { Dashboard } from "./pages/Dashboard";
 import { Officers } from "./pages/Officers";
 import { RegisterFIR } from "./pages/RegisterFIR";
@@ -21,6 +22,7 @@ function App() {
           <Route path="/" element={<Login />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/cases" element={<Cases />} />
+          <Route path="/cases/:id" element={<CaseDetailPage />} />
           <Route path="/register-fir" element={<RegisterFIR />} />
           <Route path="/crime-intelligence" element={<CrimeIntelligence />} />
           <Route path="/intelligence" element={<CrimeIntelligence />} />
