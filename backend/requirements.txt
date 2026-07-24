@@ -18,14 +18,16 @@ aiosqlite>=0.20.0
 sqlalchemy[asyncio]>=2.0.29
 asyncpg>=0.29.0
 psycopg2-binary>=2.9.9
-# Machine Learning Core (API-driven Gemini embeddings + NumPy similarity math)
-# --extra-index-url https://download.pytorch.org/whl/cpu
-# torch
-# sentence-transformers
-# faiss-cpu
-# scikit-learn
-# pandas
-numpy
+
+# Graph, Vector & Data Processing Core
+networkx>=3.0
+pyyaml>=6.0.1
+numpy>=1.26.0
+faiss-cpu>=1.7.4
+
+# AI Services & HTTP Client
+google-genai>=0.1.0
+httpx>=0.27.0
 
 # Zoho Catalyst Compliance SDK
 zcatalyst-sdk>=1.4.0

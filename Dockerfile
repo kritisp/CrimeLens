@@ -20,7 +20,7 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 # Copy the dependency manifest file first.
 # By copying only requirements.txt, Docker caches this layer unless package requirements change.
-COPY requirements.txt .
+COPY backend/requirements.txt .
 
 # Install dependencies into the virtual environment without caching wheel files.
 RUN pip install --no-cache-dir -r requirements.txt
@@ -45,13 +45,14 @@ COPY --from=builder /opt/venv /opt/venv
 
 # Activate the virtual environment paths in the runner container.
 ENV PATH="/opt/venv/bin:$PATH"
+ENV PYTHONPATH="/app"
 
 # Copy the application code folder and config settings files.
-COPY app/ /app/app/
-COPY configs/ /app/configs/
-COPY crimelens.db* /app/
-COPY index.py /app/
-
+COPY backend/app/ /app/app/
+COPY backend/configs/ /app/configs/
+COPY backend/crimelens.db* /app/
+COPY backend/index.py /app/
+COPY shared/ /app/shared/
 # Inform Docker that the container will listen on port 8000 at runtime.
 # Note: Catalyst AppSail overrides this dynamically, but EXPOSE serves as documentation.
 EXPOSE 8000
