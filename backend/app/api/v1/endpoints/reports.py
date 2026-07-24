@@ -27,7 +27,7 @@ async def generate_smartbrowz_dossier(data: DossierData):
     """
     Generates an Official PDF Dossier using Zoho Catalyst SmartBrowz.
     """
-    html_content = f\"\"\"
+    html_content = f"""
     <html>
         <head><style>body {{ font-family: courier, monospace; }} h1 {{ color: #1e3a8a; }}</style></head>
         <body>
@@ -35,9 +35,9 @@ async def generate_smartbrowz_dossier(data: DossierData):
             <hr/>
             <h3>FIR Number: {data.overview.get('firNumber')}</h3>
             <p><strong>Case ID:</strong> {data.overview.get('caseNumber')}</p>
-            <p><strong>Priority Level:</strong> {str(data.overview.get('priority')).toUpperCase()}</p>
+            <p><strong>Priority Level:</strong> {str(data.overview.get('priority')).upper()}</p>
             <p><strong>Assigned Officer:</strong> {data.overview.get('assignedOfficer')}</p>
-            <p><strong>Status:</strong> {str(data.overview.get('currentStatus')).toUpperCase()}</p>
+            <p><strong>Status:</strong> {str(data.overview.get('currentStatus')).upper()}</p>
             <hr/>
             <h2>INCIDENT NARRATIVE SUMMARY</h2>
             <p>{data.incident.get('originalNarrative') or data.incident.get('description')}</p>
@@ -48,7 +48,7 @@ async def generate_smartbrowz_dossier(data: DossierData):
             </ul>
         </body>
     </html>
-    \"\"\"
+    """
     
     try:
         import zcatalyst_sdk

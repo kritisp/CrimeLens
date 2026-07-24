@@ -2,6 +2,7 @@
   "command": "python index.py",
   "buildPath": ".",
   "stack": "python_3_12",
+  "port": 9000,
   "memory": 1024,
   "env_variables": {
     "ENVIRONMENT": "production",

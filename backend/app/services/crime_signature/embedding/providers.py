@@ -44,9 +44,9 @@ class SentenceTransformerProvider(EmbeddingProvider):
         self.load_time_ms: float = 0.0
 
     def initialize(self, config: Dict[str, Any]) -> None:
-        \"\"\"
+        """
         Loads the configured model details. Uses Hugging Face REST API.
-        \"\"\"
+        """
         import os
         self.model_name = config.get("model_name", "sentence-transformers/all-MiniLM-L6-v2")
         self.model_path = config.get("model_path", "")
@@ -60,9 +60,9 @@ class SentenceTransformerProvider(EmbeddingProvider):
         self._api_key = os.getenv("HUGGINGFACE_API_KEY", "")
 
     def _generate_deterministic_mock_vector(self, text: str) -> List[float]:
-        \"\"\"
+        """
         Generates a deterministic float vector mapped to configured dimensions.
-        \"\"\"
+        """
         dim = self.dimension or 384
         # Seed deterministic byte sequence via SHA-256
         seed = hashlib.sha256(text.encode("utf-8")).digest()
@@ -78,9 +78,9 @@ class SentenceTransformerProvider(EmbeddingProvider):
         return vector
 
     def embed_raw(self, text: str) -> List[float]:
-        \"\"\"
+        """
         Translates raw input text into high-dimensional float coordinates via HF API.
-        \"\"\"
+        """
         if not self.model_name or not self.dimension:
             raise ModelLoadError("SentenceTransformerProvider was not properly initialized.")
 
