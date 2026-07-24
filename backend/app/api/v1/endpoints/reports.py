@@ -12,8 +12,62 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.infrastructure.database.setup import get_db
 from app.infrastructure.database.repositories.sqlite_repository import SQLiteFIRRepository
+from pydantic import BaseModel
+from fastapi import Response
 
 router = APIRouter()
+
+class DossierData(BaseModel):
+    overview: Dict[str, Any]
+    incident: Dict[str, Any]
+    evidence: list
+
+@router.post("/smartbrowz-dossier")
+async def generate_smartbrowz_dossier(data: DossierData):
+    """
+    Generates an Official PDF Dossier using Zoho Catalyst SmartBrowz.
+    """
+    html_content = f\"\"\"
+    <html>
+        <head><style>body {{ font-family: courier, monospace; }} h1 {{ color: #1e3a8a; }}</style></head>
+        <body>
+            <h1>DELHI POLICE DEPARTMENT - OFFICIAL BRIEFING</h1>
+            <hr/>
+            <h3>FIR Number: {data.overview.get('firNumber')}</h3>
+            <p><strong>Case ID:</strong> {data.overview.get('caseNumber')}</p>
+            <p><strong>Priority Level:</strong> {str(data.overview.get('priority')).toUpperCase()}</p>
+            <p><strong>Assigned Officer:</strong> {data.overview.get('assignedOfficer')}</p>
+            <p><strong>Status:</strong> {str(data.overview.get('currentStatus')).toUpperCase()}</p>
+            <hr/>
+            <h2>INCIDENT NARRATIVE SUMMARY</h2>
+            <p>{data.incident.get('originalNarrative') or data.incident.get('description')}</p>
+            <hr/>
+            <h2>FORENSIC EVIDENCE LEDGER</h2>
+            <ul>
+                {"".join([f"<li>[{ev.get('id')}] {ev.get('type')}: {ev.get('description')}</li>" for ev in data.evidence])}
+            </ul>
+        </body>
+    </html>
+    \"\"\"
+    
+    try:
+        import zcatalyst_sdk
+        app = zcatalyst_sdk.initialize()
+        
+        # Initiate Zoho Catalyst SmartBrowz SDK
+        # This sends the HTML template to Zoho's serverless PDF renderer
+        smartbrowz = app.smart_browz()
+        pdf_stream = smartbrowz.create_pdf_from_html(html_content)
+        
+        return Response(content=pdf_stream, media_type="application/pdf")
+        
+    except Exception as e:
+        print(f"SmartBrowz SDK skipped/failed: {e}")
+        # Throw 501 Not Implemented so the frontend gracefully falls back to jsPDF
+        raise HTTPException(
+            status_code=status.HTTP_501_NOT_IMPLEMENTED,
+            detail="SmartBrowz PDF generation skipped. Reverting to frontend jsPDF rendering."
+        )
 
 
 @router.get("/{report_type}", response_model=Dict[str, Any], status_code=status.HTTP_200_OK)

@@ -25,7 +25,7 @@ import {
 
 export function Login() {
   const navigate = useNavigate();
-  const [badgeId, setBadgeId] = useState("KSP-04213");
+  const [email, setEmail] = useState("admin@ksp.gov.in");
   const [passcode, setPasscode] = useState("admin123");
   const [rememberDevice, setRememberDevice] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -47,16 +47,46 @@ export function Login() {
     }));
   }, []);
 
-  const handleSubmit = useCallback((e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!badgeId.trim() || !passcode.trim()) return;
+    if (!email.trim() || !passcode.trim()) return;
 
     setIsAuthenticating(true);
-    setTimeout(() => {
+    
+    try {
+      // Connect to the actual backend API
+      const response = await fetch("http://localhost:8000/api/v1/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email: email,
+          password: passcode,
+          role: "Investigator"
+        })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        // Save the token to localStorage
+        localStorage.setItem("token", data.access_token);
+        
+        // Wait a short moment for the 3D earth animation to complete
+        setTimeout(() => {
+          setIsAuthenticating(false);
+          navigate("/dashboard");
+        }, 1000);
+      } else {
+        alert("Authentication failed. Please check your Email and Passcode.");
+        setIsAuthenticating(false);
+      }
+    } catch (error) {
+      console.error("Login API Error:", error);
+      alert("Failed to connect to the authentication server.");
       setIsAuthenticating(false);
-      navigate("/dashboard");
-    }, 1000); // 1.0s allows the Earth spin & zoom animation to complete
-  }, [badgeId, passcode, navigate]);
+    }
+  }, [email, passcode, navigate]);
 
   // Capabilities with dual-line text matching the mock
   const capabilities = [
@@ -298,17 +328,17 @@ export function Login() {
           <form onSubmit={handleSubmit} className="space-y-4 text-xs">
             {/* Officer ID */}
             <div className="space-y-1.5">
-              <label className="block text-slate-400 uppercase font-black text-[8px] tracking-wider ml-1">Officer ID</label>
+              <label className="block text-slate-400 uppercase font-black text-[8px] tracking-wider ml-1">Officer Email</label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-600 group-focus-within:text-cyan-400 transition-colors">
                   <User className="h-4 w-4" />
                 </div>
                 <input
-                  type="text"
+                  type="email"
                   required
-                  value={badgeId}
-                  onChange={(e) => setBadgeId(e.target.value)}
-                  placeholder="e.g. KSP-04213"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="e.g. admin@ksp.gov.in"
                   className="w-full bg-black/60 border border-white/10 rounded-xl py-3.5 pl-10 pr-4 text-slate-200 placeholder-slate-700 outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/20 transition-all font-mono"
                 />
               </div>

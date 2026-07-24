@@ -44,35 +44,25 @@ class SentenceTransformerProvider(EmbeddingProvider):
         self.load_time_ms: float = 0.0
 
     def initialize(self, config: Dict[str, Any]) -> None:
-        """
-        Loads the configured model details. Loads weights lazily to optimize memory.
-        """
-        self.model_name = config.get("model_name", "unnamed")
+        \"\"\"
+        Loads the configured model details. Uses Hugging Face REST API.
+        \"\"\"
+        import os
+        self.model_name = config.get("model_name", "sentence-transformers/all-MiniLM-L6-v2")
         self.model_path = config.get("model_path", "")
         self.dimension = config.get("dimension", 384)
-        self.mock_mode = config.get("mock_mode", True)
+        self.mock_mode = config.get("mock_mode", False)
         
         self.model_version = config.get("model_version", "1.0.0")
         self.feature_version = config.get("feature_version", "1.0.0")
         self.pipeline_version = config.get("pipeline_version", "1.0.0")
 
-        # If not in mock mode, attempt immediate verification of dependencies
-        if not self.mock_mode:
-            start_time = time.perf_counter()
-            try:
-                from sentence_transformers import SentenceTransformer
-                self._model = SentenceTransformer(self.model_path or self.model_name)
-            except Exception as exc:
-                raise ModelLoadError(
-                    f"Failed to load SentenceTransformer weights for {self.model_path or self.model_name}. "
-                    f"Ensure 'sentence-transformers' package is installed. Error: {str(exc)}"
-                ) from exc
-            self.load_time_ms = (time.perf_counter() - start_time) * 1000.0
+        self._api_key = os.getenv("HUGGINGFACE_API_KEY", "")
 
     def _generate_deterministic_mock_vector(self, text: str) -> List[float]:
-        """
+        \"\"\"
         Generates a deterministic float vector mapped to configured dimensions.
-        """
+        \"\"\"
         dim = self.dimension or 384
         # Seed deterministic byte sequence via SHA-256
         seed = hashlib.sha256(text.encode("utf-8")).digest()
@@ -88,28 +78,48 @@ class SentenceTransformerProvider(EmbeddingProvider):
         return vector
 
     def embed_raw(self, text: str) -> List[float]:
-        """
-        Translates raw input text into high-dimensional float coordinates.
-        """
+        \"\"\"
+        Translates raw input text into high-dimensional float coordinates via HF API.
+        \"\"\"
         if not self.model_name or not self.dimension:
             raise ModelLoadError("SentenceTransformerProvider was not properly initialized.")
 
-        if self.mock_mode or not self._model:
+        if self.mock_mode or not self._api_key:
             # Run deterministic mock calculation
             vector = self._generate_deterministic_mock_vector(text)
             # Simulate minimal cpu hashing latency (~1ms)
             time.sleep(0.001)
-        else:
-            # Run real SentenceTransformers inference
-            try:
-                vector_np = self._model.encode(text)
-                vector = [float(x) for x in vector_np]
-            except Exception as exc:
-                raise ModelLoadError(
-                    f"SentenceTransformer inference failed for model {self.model_name}: {str(exc)}"
-                ) from exc
-                
-        return vector
+            return vector
+            
+        # Call Hugging Face Inference API
+        import urllib.request
+        import json
+
+        model = self.model_name
+        if not model.startswith("sentence-transformers/"):
+            model = f"sentence-transformers/{model}"
+
+        url = f"https://api-inference.huggingface.co/pipeline/feature-extraction/{model}"
+        payload = {"inputs": text}
+
+        try:
+            req = urllib.request.Request(
+                url,
+                data=json.dumps(payload).encode("utf-8"),
+                headers={
+                    "Authorization": f"Bearer {self._api_key}",
+                    "Content-Type": "application/json"
+                },
+                method="POST"
+            )
+            with urllib.request.urlopen(req, timeout=10) as response:
+                res_data = json.loads(response.read().decode("utf-8"))
+                # Hugging Face feature-extraction returns a list of floats for a single string
+                return [float(x) for x in res_data]
+        except Exception as exc:
+            raise ModelLoadError(
+                f"HuggingFace inference failed for model {self.model_name}: {str(exc)}"
+            ) from exc
 
     def get_metadata(self) -> EmbeddingMetadata:
         if not self.model_name or not self.dimension:

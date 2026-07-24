@@ -16,6 +16,7 @@ python-multipart>=0.0.12
 # Database Orchestration
 aiosqlite>=0.20.0
 sqlalchemy[asyncio]>=2.0.29
+asyncpg>=0.29.0
 
 # Machine Learning Core (API-driven Gemini embeddings + NumPy similarity math)
 # --extra-index-url https://download.pytorch.org/whl/cpu

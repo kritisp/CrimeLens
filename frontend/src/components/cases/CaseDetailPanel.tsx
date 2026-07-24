@@ -171,10 +171,35 @@ export function CaseDetailPanel({ record, onClose }: CaseDetailPanelProps) {
     window.print();
   };
 
-  // Custom jsPDF Compiler Action
-  const triggerPDFExport = () => {
+  // Custom PDF Compiler Action (Tries Zoho SmartBrowz Backend first, falls back to jsPDF)
+  const triggerPDFExport = async () => {
     if (!dossierData) return;
     const { overview, incident, evidence } = dossierData;
+    
+    try {
+      // Phase 4: Catalyst SmartBrowz Attempt
+      const response = await fetch("http://localhost:8000/api/v1/reports/smartbrowz-dossier", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dossierData)
+      });
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `Official_Dossier_${overview.firNumber.replace(/\//g, "_")}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        return;
+      }
+      
+      console.warn("SmartBrowz failed or not configured. Falling back to local jsPDF render.");
+    } catch (e) {
+      console.warn("SmartBrowz API unreachable. Falling back to local jsPDF render.");
+    }
     
     try {
       const doc = new jsPDF();

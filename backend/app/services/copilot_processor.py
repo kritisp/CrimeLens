@@ -45,9 +45,44 @@ class CopilotProcessor:
             pass
 
         if file_category == "image":
-            # Image Analyzer Mock AI
-            extracted_text = f"[OCR Text from {filename}]: Incident Location Signboard - Park Street PS limits. Plate: WB06A1234."
-            summary = "Image displays a suspect carrying a suspicious item next to a vehicle near Park Street PS."
+            # Attempt to use Zoho Catalyst Zia OCR
+            catalyst_text = ""
+            try:
+                import zcatalyst_sdk
+                import tempfile
+                import os
+                
+                catalyst_app = zcatalyst_sdk.initialize()
+                zia = catalyst_app.zia()
+                
+                # Write bytes to temp file since Catalyst SDK usually requires a file object/path
+                with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp_file:
+                    tmp_file.write(file_bytes)
+                    tmp_path = tmp_file.name
+                    
+                try:
+                    with open(tmp_path, "rb") as f:
+                        ocr_result = zia.extract_optical_characters(f)
+                        # Extract text from response (depending on SDK version, it could be text or paragraphs)
+                        if hasattr(ocr_result, "text"):
+                            catalyst_text = ocr_result.text
+                        elif isinstance(ocr_result, dict):
+                            catalyst_text = str(ocr_result)
+                        else:
+                            catalyst_text = getattr(ocr_result, "content", "OCR success but empty content.")
+                finally:
+                    if os.path.exists(tmp_path):
+                        os.remove(tmp_path)
+            except Exception as e:
+                print(f"Zia OCR Initialization/Execution skipped or failed: {e}")
+                
+            if catalyst_text:
+                extracted_text = f"[Zoho Zia OCR Text from {filename}]: {catalyst_text}"
+                summary = "Image processed by Zoho Catalyst Zia OCR."
+            else:
+                # Image Analyzer Mock AI (Fallback)
+                extracted_text = f"[OCR Text from {filename}]: Incident Location Signboard - Park Street PS limits. Plate: WB06A1234."
+                summary = "Image displays a suspect carrying a suspicious item next to a vehicle near Park Street PS."
             
             # Extract entities
             entities.append({"name": "WB06A1234", "category": "vehicle", "details": "White sedan detected near incident perimeter"})
