@@ -189,6 +189,37 @@ class Settings(BaseSettings):
         """Swagger UI and ReDoc are disabled in production for security."""
         return not self.is_production
 
+    @property
+    def async_database_url(self) -> str:
+        """
+        Returns a normalized database URL guaranteed to use an async SQLAlchemy driver dialect
+        (e.g., postgresql+asyncpg:// or sqlite+aiosqlite://).
+        """
+        url = self.database_url
+        if url.startswith("postgres://"):
+            return url.replace("postgres://", "postgresql+asyncpg://", 1)
+        if url.startswith("postgresql://") and not url.startswith("postgresql+"):
+            return url.replace("postgresql://", "postgresql+asyncpg://", 1)
+        if url.startswith("sqlite://") and not url.startswith("sqlite+aiosqlite://"):
+            return url.replace("sqlite://", "sqlite+aiosqlite://", 1)
+        return url
+
+    @property
+    def sync_database_url(self) -> str:
+        """
+        Returns a normalized database URL guaranteed to use a sync SQLAlchemy driver dialect
+        (e.g., postgresql:// or sqlite://).
+        """
+        url = self.database_url
+        if url.startswith("sqlite+aiosqlite://"):
+            return url.replace("sqlite+aiosqlite://", "sqlite://", 1)
+        if url.startswith("postgresql+asyncpg://"):
+            return url.replace("postgresql+asyncpg://", "postgresql://", 1)
+        if url.startswith("postgres://"):
+            return url.replace("postgres://", "postgresql://", 1)
+        return url
+
+
 
 @lru_cache
 def get_settings() -> Settings:

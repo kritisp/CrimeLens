@@ -63,6 +63,12 @@ def configure_logging(log_level: str = "INFO", json_logs: bool = False) -> None:
     """
     numeric_level: int = getattr(logging, log_level.upper(), logging.INFO)
 
+    if hasattr(sys.stdout, "reconfigure"):
+        try:
+            sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+
     # Processors that run on every log event regardless of output format.
     # Order matters — each processor receives and returns the event dict.
     shared_processors: list[Any] = [

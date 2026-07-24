@@ -49,7 +49,7 @@ async def load_signatures_and_warm_up_ml() -> None:
         await loop.run_in_executor(None, get_pipeline_executor)
         logger.info("bg_ml_models_load_completed")
     except Exception as exc:
-        logger.exception("bg_lifespan_startup_failed", error=str(exc))
+        logger.error("bg_lifespan_startup_failed", error=str(exc))
 
 
 @asynccontextmanager
@@ -67,12 +67,21 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         log_level=settings.log_level,
         json_logs=settings.log_json,
     )
+    import re
+    raw_url = settings.database_url
+    masked_url = re.sub(r"://([^:]+):([^@]+)@", r"://\1:***@", raw_url)
+    masked_async_url = re.sub(r"://([^:]+):([^@]+)@", r"://\1:***@", settings.async_database_url)
+    masked_sync_url = re.sub(r"://([^:]+):([^@]+)@", r"://\1:***@", settings.sync_database_url)
+
     logger.info(
         "app_startup_initiated",
         app_name=settings.app_name,
         version=settings.app_version,
         environment=settings.environment,
         debug=settings.debug,
+        configured_database_url=masked_url,
+        normalized_async_database_url=masked_async_url,
+        normalized_sync_database_url=masked_sync_url,
     )
 
     # 2. Spawn background task to initialize DB and warm up ML models without blocking boot
