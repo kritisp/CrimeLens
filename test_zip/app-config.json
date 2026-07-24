@@ -1,5 +1,5 @@
 {
-  "command": "python index.py",
+  "command": "python run.py",
   "buildPath": ".",
   "stack": "python_3_12",
   "memory": 1024,

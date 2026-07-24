@@ -12,9 +12,6 @@
       ".git",
       "Dockerfile",
       "nginx.conf"
-    ],
-    "scripts": {
-      "build": "cd frontend && npm install && npm run build"
-    }
+    ]
   }
 }

@@ -1,0 +1,31 @@
+# Core FastAPI Stack
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+pydantic==2.8.2
+pydantic-settings==2.4.0
+typing-extensions==4.12.2
+
+# Logging
+structlog>=24.1.0
+
+# Security & Credentials
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+python-multipart>=0.0.12
+
+# Database Orchestration
+aiosqlite>=0.20.0
+sqlalchemy[asyncio]>=2.0.29
+asyncpg>=0.29.0
+
+# Machine Learning Core (API-driven Gemini embeddings + NumPy similarity math)
+# --extra-index-url https://download.pytorch.org/whl/cpu
+# torch
+# sentence-transformers
+# faiss-cpu
+# scikit-learn
+# pandas
+numpy
+
+# Zoho Catalyst Compliance SDK
+zcatalyst-sdk>=1.4.0
