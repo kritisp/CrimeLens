@@ -1,12 +1,6 @@
 import os
 import sys
 
-# Auto-reexecute using virtualenv python if run from system python
-# This protects against host environments that override PATH or ignore Dockerfile ENV directives.
-venv_python = "/opt/venv/bin/python"
-if os.path.exists(venv_python) and sys.executable != venv_python:
-    print(f"Re-executing run.py using virtual environment python: {venv_python}")
-    os.execv(venv_python, [venv_python] + sys.argv)
 
 # Dynamic inclusion of vendor/library folder for Zoho Catalyst managed runtimes.
 # In Catalyst, we install dependencies locally into the 'lib' folder at deploy time.
