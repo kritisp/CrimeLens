@@ -8,8 +8,5 @@
     "DEBUG": "false",
     "DATABASE_URL": "sqlite+aiosqlite:///./crimelens.db",
     "JWT_SECRET_KEY": "4a5f3e9c8b7a6d5c4e3f2a1b0c9d8e7f6a5b4c3d2e1f0a9b8c7d6e5f4a3b2c1d"
-  },
-  "scripts": {
-    "predeploy": "pip install -r requirements.txt -t ./lib"
   }
 }
