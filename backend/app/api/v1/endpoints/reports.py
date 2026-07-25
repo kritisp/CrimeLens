@@ -55,18 +55,20 @@ async def generate_smartbrowz_dossier(data: DossierData):
         app = zcatalyst_sdk.initialize()
         
         # Initiate Zoho Catalyst SmartBrowz SDK
-        # This sends the HTML template to Zoho's serverless PDF renderer
         smartbrowz = app.smart_browz()
-        pdf_stream = smartbrowz.convert_to_pdf(source=html_content)
+        resp = smartbrowz.convert_to_pdf(source=html_content)
         
-        return Response(content=pdf_stream, media_type="application/pdf")
+        # resp is a requests.Response object, use .content to get bytes
+        return Response(content=resp.content, media_type="application/pdf")
         
     except Exception as e:
-        print(f"SmartBrowz SDK skipped/failed: {e}")
+        import traceback
+        err_msg = traceback.format_exc()
+        print(f"SmartBrowz SDK skipped/failed: {err_msg}")
         # Throw 501 Not Implemented so the frontend gracefully falls back to jsPDF
         raise HTTPException(
             status_code=status.HTTP_501_NOT_IMPLEMENTED,
-            detail="SmartBrowz PDF generation skipped. Reverting to frontend jsPDF rendering."
+            detail=f"SmartBrowz PDF generation failed. Error: {str(e)}"
         )
 
 
