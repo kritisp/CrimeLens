@@ -46,6 +46,13 @@ from app.services.ai.gemini_service import get_gemini_service
 
 router = APIRouter(prefix="/intelligence", tags=["intelligence"])
 
+@router.get("/dossier/{case_id}")
+async def get_dossier_by_id(case_id: str, db: Session = Depends(get_db)):
+    """Alias route to fetch case dossier by ID."""
+    from app.api.v1.endpoints.cases import get_case
+    return await get_case(case_id, db)
+
+
 def to_fir_response(case: CaseMaster) -> FIRResponse:
     """Project a relational CaseMaster object into the standard FIRResponse contract."""
     complainant_name = case.complainants[0].name if case.complainants else "Unknown"
