@@ -178,7 +178,7 @@ export function CaseDetailPanel({ record, onClose }: CaseDetailPanelProps) {
     
     try {
       // Phase 4: Catalyst SmartBrowz Attempt
-      const response = await fetch("http://localhost:8000/api/v1/reports/smartbrowz-dossier", {
+      const response = await fetch("/api/v1/reports/smartbrowz-dossier", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(dossierData)
