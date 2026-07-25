@@ -5,17 +5,21 @@ import "./index.css";
 
 if (typeof window !== "undefined") {
   const originalFetch = window.fetch;
-  window.fetch = function (input, init) {
+  window.fetch = function (input: RequestInfo | URL, init?: RequestInit) {
+    const backendUrl = "https://crimelens-backend-50044197986.development.catalystappsail.in";
     if (typeof input === "string") {
-      const backendUrl = "https://crimelens-backend-50044197986.development.catalystappsail.in";
-      
-      // Override hardcoded localhost URLs
-      if (input.startsWith("http://localhost:8000/api/v1")) {
+      if (input.startsWith("http://localhost:8000")) {
         input = input.replace("http://localhost:8000", backendUrl);
-      } 
-      // Override relative API URLs
-      else if (input.startsWith("/api/v1")) {
+      } else if (input.startsWith("/api/v1")) {
         input = `${backendUrl}${input}`;
+      }
+    } else if (input instanceof URL) {
+      if (input.href.startsWith("http://localhost:8000")) {
+        input = new URL(input.href.replace("http://localhost:8000", backendUrl));
+      }
+    } else if (input instanceof Request) {
+      if (input.url.startsWith("http://localhost:8000")) {
+        input = new Request(input.url.replace("http://localhost:8000", backendUrl), input);
       }
     }
     return originalFetch(input, init);
