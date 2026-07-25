@@ -6,15 +6,16 @@ import "./index.css";
 if (typeof window !== "undefined") {
   const originalFetch = window.fetch;
   window.fetch = function (input, init) {
-    if (typeof input === "string" && input.startsWith("/api/v1")) {
-      const hostname = window.location.hostname;
-      if (hostname.includes("catalystserverless")) {
-        const projectPart = hostname.split(".")[0];
-        const appsailProjectPart = projectPart.replace(/^crimelens-/, "crimelens-backend-");
-        const appsailHostname = hostname
-          .replace(projectPart, appsailProjectPart)
-          .replace("catalystserverless", "catalystappsail");
-        input = `https://${appsailHostname}${input}`;
+    if (typeof input === "string") {
+      const backendUrl = "https://crimelens-backend-50044197986.development.catalystappsail.in";
+      
+      // Override hardcoded localhost URLs
+      if (input.startsWith("http://localhost:8000/api/v1")) {
+        input = input.replace("http://localhost:8000", backendUrl);
+      } 
+      // Override relative API URLs
+      else if (input.startsWith("/api/v1")) {
+        input = `${backendUrl}${input}`;
       }
     }
     return originalFetch(input, init);
