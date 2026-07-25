@@ -22,8 +22,10 @@ class DossierData(BaseModel):
     incident: Dict[str, Any]
     evidence: list
 
+from fastapi import Request
+
 @router.post("/smartbrowz-dossier")
-async def generate_smartbrowz_dossier(data: DossierData):
+async def generate_smartbrowz_dossier(data: DossierData, request: Request):
     """
     Generates an Official PDF Dossier using Zoho Catalyst SmartBrowz.
     """
@@ -52,7 +54,10 @@ async def generate_smartbrowz_dossier(data: DossierData):
     
     try:
         import zcatalyst_sdk
-        app = zcatalyst_sdk.initialize()
+        try:
+            app = zcatalyst_sdk.initialize(req=request)
+        except Exception:
+            app = zcatalyst_sdk.initialize_app()
         
         # Initiate Zoho Catalyst SmartBrowz SDK
         smartbrowz = app.smart_browz()
