@@ -57,7 +57,7 @@ async def generate_smartbrowz_dossier(data: DossierData):
         # Initiate Zoho Catalyst SmartBrowz SDK
         # This sends the HTML template to Zoho's serverless PDF renderer
         smartbrowz = app.smart_browz()
-        pdf_stream = smartbrowz.create_pdf_from_html(html_content)
+        pdf_stream = smartbrowz.convert_to_pdf(source=html_content)
         
         return Response(content=pdf_stream, media_type="application/pdf")
         
