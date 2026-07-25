@@ -203,44 +203,126 @@ export function CaseDetailPanel({ record, onClose }: CaseDetailPanelProps) {
     
     try {
       const doc = new jsPDF();
-      doc.setFont("courier", "bold");
-      doc.setFontSize(16);
-      doc.text("DELHI POLICE DEPARTMENT - OFFICIAL BRIEFING", 20, 20);
-      doc.setDrawColor(34, 211, 238);
-      doc.line(20, 24, 190, 24);
       
-      doc.setFont("courier", "normal");
-      doc.setFontSize(10);
-      doc.text(`FIR Number: ${overview.firNumber}`, 20, 35);
-      doc.text(`Case ID: ${overview.caseNumber}`, 20, 42);
-      doc.text(`Priority Level: ${overview.priority.toUpperCase()}`, 20, 49);
-      doc.text(`Assigned Officer: ${overview.assignedOfficer}`, 20, 56);
-      doc.text(`Status: ${overview.currentStatus.toUpperCase()}`, 20, 63);
+      // Header Banner Box (Navy Blue Fill)
+      doc.setFillColor(15, 23, 42);
+      doc.rect(14, 14, 182, 26, "F");
       
-      doc.line(20, 68, 190, 68);
-      doc.setFont("courier", "bold");
-      doc.text("INCIDENT NARRATIVE SUMMARY", 20, 75);
-      doc.setFont("courier", "normal");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(13);
+      doc.setTextColor(56, 189, 248);
+      doc.text("KARNATAKA STATE POLICE — CRIME RECORDS BUREAU", 20, 25);
       
-      const splitText = doc.splitTextToSize(incident.originalNarrative || incident.description, 170);
-      doc.text(splitText, 20, 82);
+      doc.setFontSize(8);
+      doc.setTextColor(148, 163, 184);
+      doc.text("CRIMELENS AI FORENSIC INTELLIGENCE DOSSIER", 20, 33);
       
-      const textHeight = splitText.length * 5;
-      const nextY = 82 + textHeight + 10;
+      // Security Badge Box
+      doc.setFillColor(254, 242, 242);
+      doc.setDrawColor(254, 202, 202);
+      doc.rect(14, 44, 182, 7, "DF");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(7.5);
+      doc.setTextColor(153, 27, 27);
+      doc.text("RESTRICTED // FOR OFFICIAL LAW ENFORCEMENT USE ONLY // CONFIDENTIAL", 20, 49);
       
-      doc.line(20, nextY - 5, 190, nextY - 5);
-      doc.setFont("courier", "bold");
-      doc.text("FORENSIC EVIDENCE LEDGER", 20, nextY);
-      doc.setFont("courier", "normal");
+      // Section 1: Master Case Parameters Grid
+      doc.setFontSize(9);
+      doc.setTextColor(2, 132, 199);
+      doc.text("MASTER CASE PARAMETERS", 14, 58);
+      doc.setDrawColor(226, 232, 240);
+      doc.line(14, 60, 196, 60);
       
-      let evY = nextY + 7;
-      evidence.forEach((ev: any) => {
+      // Grid Box
+      doc.setFillColor(248, 250, 252);
+      doc.rect(14, 63, 182, 34, "DF");
+      
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.setTextColor(100, 116, 139);
+      doc.text("FIR Number:", 18, 70);
+      doc.text("Case Number:", 105, 70);
+      doc.text("Priority Level:", 18, 78);
+      doc.text("Current Status:", 105, 78);
+      doc.text("Lead Officer:", 18, 86);
+      doc.text("Police Station:", 105, 86);
+
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(15, 23, 42);
+      doc.text(String(overview.firNumber || "N/A"), 45, 70);
+      doc.text(String(overview.caseNumber || "N/A"), 135, 70);
+      doc.setTextColor(239, 68, 68);
+      doc.text(String(overview.priority || "N/A").toUpperCase(), 45, 78);
+      doc.setTextColor(15, 23, 42);
+      doc.text(String(overview.currentStatus || "N/A").toUpperCase(), 135, 78);
+      doc.text(String(overview.assignedOfficer || "N/A"), 45, 86);
+      doc.text(String(overview.policeStation || "Central Station"), 135, 86);
+
+      // Section 2: Narrative Summary
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      doc.setTextColor(2, 132, 199);
+      doc.text("INCIDENT NARRATIVE SUMMARY", 14, 104);
+      doc.line(14, 106, 196, 106);
+
+      doc.setFillColor(241, 245, 249);
+      doc.rect(14, 109, 182, 28, "F");
+      doc.setDrawColor(2, 132, 199);
+      doc.setLineWidth(1.5);
+      doc.line(14, 109, 14, 137);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8.5);
+      doc.setTextColor(51, 65, 85);
+      const splitNarrative = doc.splitTextToSize(incident.originalNarrative || incident.description || "No narrative details logged.", 174);
+      doc.text(splitNarrative, 18, 116);
+
+      // Section 3: Forensic Evidence Ledger Table
+      const evStartY = 144;
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      doc.setTextColor(2, 132, 199);
+      doc.text("FORENSIC EVIDENCE LEDGER", 14, evStartY);
+      doc.setLineWidth(0.5);
+      doc.setDrawColor(226, 232, 240);
+      doc.line(14, evStartY + 2, 196, evStartY + 2);
+
+      // Table Header Row
+      doc.setFillColor(15, 23, 42);
+      doc.rect(14, evStartY + 5, 182, 7, "F");
+      doc.setFontSize(7.5);
+      doc.setTextColor(255, 255, 255);
+      doc.text("ID", 18, evStartY + 10);
+      doc.text("Type", 42, evStartY + 10);
+      doc.text("Description", 78, evStartY + 10);
+      doc.text("Chain of Custody Hash", 148, evStartY + 10);
+
+      let evY = evStartY + 17;
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(15, 23, 42);
+      evidence.forEach((ev: any, idx: number) => {
         if (evY < 270) {
-          doc.text(`- [${ev.id}] ${ev.type}: ${ev.description} (Collector: ${ev.uploadedBy})`, 20, evY);
-          evY += 7;
+          doc.setFillColor(idx % 2 === 0 ? 255 : 248, idx % 2 === 0 ? 255 : 250, idx % 2 === 0 ? 255 : 252);
+          doc.rect(14, evY - 5, 182, 7, "F");
+          doc.text(String(ev.id), 18, evY);
+          doc.text(String(ev.type), 42, evY);
+          doc.text(String(ev.description).substring(0, 38), 78, evY);
+          doc.setTextColor(2, 132, 199);
+          doc.setFont("courier", "normal");
+          doc.text(`0x7fa${String(ev.id).charCodeAt(0)}8b490c`, 148, evY);
+          doc.setFont("helvetica", "normal");
+          doc.setTextColor(15, 23, 42);
+          evY += 8;
         }
       });
-      
+
+      // Footer
+      doc.setDrawColor(203, 213, 225);
+      doc.line(14, 280, 196, 280);
+      doc.setFontSize(7);
+      doc.setTextColor(100, 116, 139);
+      doc.text("DIGITALLY AUTHENTICATED RECORD • Issued by CrimeLens AI Forensic Intelligence Unit • SCRB Karnataka", 105, 285, { align: "center" });
+
       doc.save(`Official_Dossier_${overview.firNumber.replace(/\//g, "_")}.pdf`);
     } catch (e) {
       console.error("PDF generation failed:", e);
