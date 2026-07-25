@@ -115,6 +115,20 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
+    from starlette.middleware.base import BaseHTTPMiddleware
+    class ContentTypeBypassMiddleware(BaseHTTPMiddleware):
+        async def dispatch(self, request: Request, call_next):
+            # Hackathon trick: Bypass Zoho API Gateway CORS Preflight (OPTIONS)
+            if request.method in ["POST", "PUT", "PATCH"]:
+                content_type = request.headers.get("content-type", "")
+                if "text/plain" in content_type:
+                    headers = dict(request.scope["headers"])
+                    headers[b"content-type"] = b"application/json"
+                    request.scope["headers"] = [(k, v) for k, v in headers.items()]
+            return await call_next(request)
+
+    app.add_middleware(ContentTypeBypassMiddleware)
+
     # ── CORS Middleware ───────────────────────────────────────────────────────
     app.add_middleware(
         CORSMiddleware,

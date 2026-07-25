@@ -7,20 +7,29 @@ if (typeof window !== "undefined") {
   const originalFetch = window.fetch;
   const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
   const deployedBackend = "https://crimelens-backend-50044197986.development.catalystappsail.in";
+  const backendUrl = isLocal ? "" : deployedBackend;
 
   window.fetch = function (input: RequestInfo | URL, init?: RequestInit) {
     if (typeof input === "string") {
       if (input.startsWith("http://localhost:8000") || input.startsWith("http://127.0.0.1:8000")) {
-        input = isLocal 
-          ? input.replace(/http:\/\/(localhost|127\.0\.0\.1):8000/, "")
-          : input.replace(/http:\/\/(localhost|127\.0\.0\.1):8000/, deployedBackend);
-      } else if (input.startsWith("/api/v1") && !isLocal) {
-        input = `${deployedBackend}${input}`;
+        input = input.replace(/http:\/\/(localhost|127\.0\.0\.1):8000/, backendUrl);
+      } else if (input.startsWith("/api/v1")) {
+        input = `${backendUrl}${input}`;
+      }
+
+      // Hackathon trick: Bypass Zoho API Gateway CORS Preflight (OPTIONS)
+      // by converting the request to a "Simple Request" using text/plain.
+      // The backend middleware will automatically convert it back to application/json.
+      if (init && init.headers) {
+        const newHeaders = new Headers(init.headers);
+        if (newHeaders.get("Content-Type") === "application/json") {
+          newHeaders.set("Content-Type", "text/plain");
+          init.headers = newHeaders;
+        }
       }
     } else if (input instanceof URL) {
       if (input.href.includes(":8000")) {
-        const replacement = isLocal ? "" : deployedBackend;
-        input = new URL(input.href.replace(/http:\/\/(localhost|127\.0\.0\.1):8000/, replacement));
+        input = new URL(input.href.replace(/http:\/\/(localhost|127\.0\.0\.1):8000/, backendUrl));
       }
     } else if (input instanceof Request) {
       if (input.url.includes(":8000")) {
