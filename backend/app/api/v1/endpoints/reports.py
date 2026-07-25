@@ -22,12 +22,84 @@ class DossierData(BaseModel):
     incident: Dict[str, Any]
     evidence: list
 
+import io
 from fastapi import Request
+
+def generate_pdf_dossier_reportlab(data: DossierData) -> bytes:
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib import colors
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=36, leftMargin=36, topMargin=36, bottomMargin=36)
+    styles = getSampleStyleSheet()
+    
+    title_style = ParagraphStyle('DocTitle', parent=styles['Heading1'], fontName='Helvetica-Bold', fontSize=14, textColor=colors.HexColor('#0f172a'), alignment=1, spaceAfter=4)
+    subtitle_style = ParagraphStyle('DocSubtitle', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=9, textColor=colors.HexColor('#dc2626'), alignment=1, spaceAfter=12)
+    heading_style = ParagraphStyle('SectionHeading', parent=styles['Heading2'], fontName='Helvetica-Bold', fontSize=10, textColor=colors.HexColor('#1e3a8a'), spaceBefore=10, spaceAfter=6)
+    body_style = ParagraphStyle('Body', parent=styles['Normal'], fontName='Helvetica', fontSize=9, leading=13, textColor=colors.HexColor('#334155'))
+    
+    story = []
+    story.append(Paragraph("CRIMELENS AI — OFFICIAL BRIEFING DOSSIER", title_style))
+    story.append(Paragraph("RESTRICTED // FOR OFFICIAL LAW ENFORCEMENT USE ONLY", subtitle_style))
+    story.append(HRFlowable(width="100%", thickness=1, color=colors.HexColor('#cbd5e1'), spaceAfter=10))
+    
+    ov = data.overview
+    table_data = [
+        [Paragraph("<b>FIR Number:</b>", body_style), Paragraph(str(ov.get('firNumber', 'N/A')), body_style), Paragraph("<b>Case Number:</b>", body_style), Paragraph(str(ov.get('caseNumber', 'N/A')), body_style)],
+        [Paragraph("<b>Priority:</b>", body_style), Paragraph(str(ov.get('priority', 'N/A')).upper(), body_style), Paragraph("<b>Status:</b>", body_style), Paragraph(str(ov.get('currentStatus', 'N/A')).upper(), body_style)],
+        [Paragraph("<b>Lead Officer:</b>", body_style), Paragraph(str(ov.get('assignedOfficer', 'N/A')), body_style), Paragraph("<b>Classification:</b>", body_style), Paragraph("CONFIDENTIAL", body_style)]
+    ]
+    t = Table(table_data, colWidths=[100, 160, 100, 160])
+    t.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#f8fafc')),
+        ('BOX', (0,0), (-1,-1), 0.5, colors.HexColor('#cbd5e1')),
+        ('INNERGRID', (0,0), (-1,-1), 0.5, colors.HexColor('#e2e8f0')),
+        ('TOPPADDING', (0,0), (-1,-1), 6),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 6),
+    ]))
+    story.append(t)
+    story.append(Spacer(1, 10))
+    
+    story.append(Paragraph("INCIDENT NARRATIVE SUMMARY", heading_style))
+    narrative_text = data.incident.get('originalNarrative') or data.incident.get('description') or 'No narrative recorded.'
+    story.append(Paragraph(narrative_text, body_style))
+    story.append(Spacer(1, 10))
+    
+    story.append(Paragraph("FORENSIC EVIDENCE LEDGER", heading_style))
+    ev_data = [[Paragraph("<b>Evidence ID</b>", body_style), Paragraph("<b>Type</b>", body_style), Paragraph("<b>Description</b>", body_style)]]
+    for ev in data.evidence:
+        ev_data.append([
+            Paragraph(str(ev.get('id', '')), body_style),
+            Paragraph(str(ev.get('type', '')), body_style),
+            Paragraph(str(ev.get('description', '')), body_style)
+        ])
+    if len(ev_data) == 1:
+        ev_data.append([Paragraph("N/A", body_style), Paragraph("N/A", body_style), Paragraph("No evidence recorded.", body_style)])
+    
+    ev_table = Table(ev_data, colWidths=[100, 120, 300])
+    ev_table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#e2e8f0')),
+        ('BOX', (0,0), (-1,-1), 0.5, colors.HexColor('#cbd5e1')),
+        ('INNERGRID', (0,0), (-1,-1), 0.5, colors.HexColor('#e2e8f0')),
+        ('TOPPADDING', (0,0), (-1,-1), 5),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 5),
+    ]))
+    story.append(ev_table)
+    story.append(Spacer(1, 15))
+    story.append(HRFlowable(width="100%", thickness=0.5, color=colors.HexColor('#94a3b8'), spaceAfter=8))
+    story.append(Paragraph("<i>Digitally Authenticated by CrimeLens AI Forensic Intelligence Unit.</i>", ParagraphStyle('Footer', parent=body_style, fontSize=8, textColor=colors.HexColor('#64748b'), alignment=1)))
+    
+    doc.build(story)
+    buffer.seek(0)
+    return buffer.getvalue()
+
 
 @router.post("/smartbrowz-dossier")
 async def generate_smartbrowz_dossier(data: DossierData, request: Request):
     """
-    Generates an Official PDF Dossier using Zoho Catalyst SmartBrowz.
+    Generates an Official PDF Dossier using Zoho Catalyst SmartBrowz with ReportLab fallback.
     """
     html_content = f"""
     <html>
@@ -54,27 +126,27 @@ async def generate_smartbrowz_dossier(data: DossierData, request: Request):
     
     try:
         import zcatalyst_sdk
+        options = {
+            "project_id": "42981000000039001",
+            "project_key": "50044197986",
+            "project_domain": "crimelens-60072909901.development",
+            "environment": "Development"
+        }
         try:
             app = zcatalyst_sdk.initialize(req=request)
         except Exception:
-            app = zcatalyst_sdk.initialize_app()
+            app = zcatalyst_sdk.initialize_app(options=options)
         
-        # Initiate Zoho Catalyst SmartBrowz SDK
         smartbrowz = app.smart_browz()
         resp = smartbrowz.convert_to_pdf(source=html_content)
-        
-        # resp is a requests.Response object, use .content to get bytes
-        return Response(content=resp.content, media_type="application/pdf")
-        
+        if resp and hasattr(resp, "content") and resp.content:
+            return Response(content=resp.content, media_type="application/pdf")
     except Exception as e:
-        import traceback
-        err_msg = traceback.format_exc()
-        print(f"SmartBrowz SDK skipped/failed: {err_msg}")
-        # Throw 501 Not Implemented so the frontend gracefully falls back to jsPDF
-        raise HTTPException(
-            status_code=status.HTTP_501_NOT_IMPLEMENTED,
-            detail=f"SmartBrowz PDF generation failed. Error: {str(e)}"
-        )
+        print(f"SmartBrowz SDK skipped/failed ({e}). Rendering via ReportLab engine.")
+    
+    # Fallback: Server-side ReportLab PDF rendering
+    pdf_bytes = generate_pdf_dossier_reportlab(data)
+    return Response(content=pdf_bytes, media_type="application/pdf")
 
 
 @router.get("/{report_type}", response_model=Dict[str, Any], status_code=status.HTTP_200_OK)
