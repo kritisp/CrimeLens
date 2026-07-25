@@ -1,7 +1,8 @@
 """
 CrimeLens AI — Database Engine Setup
 
-Initializes SQLAlchemy async engine and session factory lazily on demand.
+Initializes SQLAlchemy async engine and session factory lazily on demand,
+configured for Supabase PostgreSQL connection pooling and resilience.
 """
 
 from __future__ import annotations
@@ -24,11 +25,28 @@ def get_async_engine() -> AsyncEngine:
     if _async_engine is None:
         settings = get_settings()
         url = settings.async_database_url
-        _async_engine = create_async_engine(
-            url,
-            echo=settings.debug,
-            future=True,
-        )
+        
+        engine_kwargs = {
+            "echo": settings.debug,
+            "future": True,
+        }
+
+        # PostgreSQL / Supabase PgBouncer pooler optimization
+        if "postgresql" in url or "postgres" in url:
+            engine_kwargs.update({
+                "pool_pre_ping": True,
+                "pool_recycle": 300,
+                "pool_size": 10,
+                "max_overflow": 20,
+                "connect_args": {
+                    "statement_cache_size": 0,
+                    "prepared_statement_cache_size": 0
+                },
+            })
+        elif "sqlite" in url:
+            engine_kwargs["connect_args"] = {"check_same_thread": False}
+
+        _async_engine = create_async_engine(url, **engine_kwargs)
     return _async_engine
 
 

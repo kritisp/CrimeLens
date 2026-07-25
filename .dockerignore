@@ -18,3 +18,6 @@ backend/.pytest_cache
 .env.*
 
 *.log
+*.db
+*.sqlite
+*.sqlite3

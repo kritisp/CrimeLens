@@ -76,19 +76,15 @@ def populate_signatures_db() -> None:
 
 
 async def init_db() -> None:
-    """Creates SQLite tables and seeds them with synthetic FIRs if empty."""
+    """Creates database tables and seeds them with synthetic FIRs if empty."""
     from app.infrastructure.database.setup import engine, Base, async_session
-    from app.infrastructure.database.repositories.sqlite_repository import SQLiteFIRRepository
-    from app.db.base import Base as NormalizedBase
-    from app.db.session import SessionLocal
-    from app.db.seed import seed_database
+    from app.infrastructure.database.repositories.postgres_repository import PostgresFIRRepository
     
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-        await conn.run_sync(NormalizedBase.metadata.create_all)
         
     async with async_session() as session:
-        repo = SQLiteFIRRepository(session)
+        repo = PostgresFIRRepository(session)
         existing = await repo.list_raw_firs()
         if not existing:
             cases = generate_synthetic_dataset()
@@ -96,23 +92,15 @@ async def init_db() -> None:
                 await repo.store_raw_fir(case.model_dump())
             await session.commit()
 
-    # Seed relational normalized tables
-    try:
-        sync_db = SessionLocal()
-        seed_database(sync_db)
-        sync_db.close()
-    except Exception as exc:
-        print(f"Relational seed note: {exc}")
-
 
 async def load_signatures_from_db() -> None:
     """Populates SIGNATURES_DB from raw database records."""
     from app.infrastructure.database.setup import async_session
-    from app.infrastructure.database.repositories.sqlite_repository import SQLiteFIRRepository
+    from app.infrastructure.database.repositories.postgres_repository import PostgresFIRRepository
     from app.domain.models.ingested_case import IngestedCase
     
     async with async_session() as session:
-        repo = SQLiteFIRRepository(session)
+        repo = PostgresFIRRepository(session)
         raw_cases = await repo.list_raw_firs()
         pipeline = create_default_pipeline()
         for raw in raw_cases:

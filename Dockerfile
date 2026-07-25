@@ -50,7 +50,6 @@ ENV PYTHONPATH="/app"
 # Copy the application code folder and config settings files.
 COPY backend/app/ /app/app/
 COPY backend/configs/ /app/configs/
-COPY backend/crimelens.db* /app/
 COPY backend/index.py /app/
 COPY shared/ /app/shared/
 # Inform Docker that the container will listen on port 8000 at runtime.
