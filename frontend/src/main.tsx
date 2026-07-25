@@ -17,18 +17,6 @@ if (typeof window !== "undefined") {
       } else if (input.startsWith("/api/v1") && !isLocal) {
         input = `${deployedBackend}${input}`;
       }
-
-      // Hackathon trick: Bypass Zoho API Gateway CORS Preflight (OPTIONS)
-      // by converting the request to a "Simple Request" using text/plain.
-      // The backend middleware will automatically convert it back to application/json.
-      if (init && init.headers) {
-        // Convert headers object to a mutable Headers instance
-        const newHeaders = new Headers(init.headers);
-        if (newHeaders.get("Content-Type") === "application/json") {
-          newHeaders.set("Content-Type", "text/plain");
-          init.headers = newHeaders;
-        }
-      }
     } else if (input instanceof URL) {
       if (input.href.includes(":8000")) {
         const replacement = isLocal ? "" : deployedBackend;
