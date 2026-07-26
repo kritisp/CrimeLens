@@ -332,29 +332,67 @@ async def generate_smartbrowz_dossier(data: DossierData, request: Request):
     
     try:
         import os
-        import zcatalyst_sdk
-        options = {
-            "project_id": os.getenv("ZCATALYST_PROJECT_ID", "42981000000039001"),
-            "project_key": os.getenv("ZCATALYST_PROJECT_KEY", "50044197986"),
-            "project_domain": os.getenv("ZCATALYST_PROJECT_DOMAIN", "crimelens-60072909901.development"),
-            "environment": os.getenv("ZCATALYST_ENVIRONMENT", "Development"),
-            "project_secret_key": os.getenv("SMARTBROWZ_API_KEY", "cd95ea6206f2c887f9cb6b3a3c14db0bd2bc87e80f36aaa6e0727b12349cbe14")
-        }
-        try:
-            app = zcatalyst_sdk.initialize(req=request)
-        except Exception:
-            app = zcatalyst_sdk.initialize_app(options=options)
-        
-        smartbrowz = app.smart_browz()
-        resp = smartbrowz.convert_to_pdf(source=html_content)
-        if resp and hasattr(resp, "content") and resp.content:
-            return Response(content=resp.content, media_type="application/pdf")
+        import requests as _requests
+
+        # SmartBrowz India DC - bypass zcatalyst_sdk which has a response parsing bug for .in DC
+        # Confirmed working endpoint: api.catalyst.zoho.in/browser360/v1/project/<id>/convert
+        accounts_url = os.getenv("ZCATALYST_ACCOUNTS_URL", "https://accounts.zoho.in")
+        client_id = os.getenv("ZCATALYST_CLIENT_ID", "1000.UIZRX4GJ3VSPU9CGWDF07EF2SSYDKF")
+        client_secret = os.getenv("ZCATALYST_CLIENT_SECRET", "266191e78f9d2afe5e763e93882dc5b2a5522c10dd")
+        refresh_token = os.getenv("ZCATALYST_REFRESH_TOKEN", "1000.b2c48c27ccd25a4bf56be6d5c1c3a61d.9aaab06262fc77b40e7dc26061bea6b9")
+        project_id = os.getenv("ZCATALYST_PROJECT_ID", "42981000000039001")
+
+        # Step 1: Exchange refresh token for access token
+        token_resp = _requests.post(
+            accounts_url + "/oauth/v2/token",
+            data={
+                "grant_type": "refresh_token",
+                "client_id": client_id,
+                "client_secret": client_secret,
+                "refresh_token": refresh_token,
+            },
+            timeout=10
+        )
+        token_data = token_resp.json()
+        access_token = token_data.get("access_token")
+        if not access_token:
+            raise ValueError(f"No access token returned: {token_data}")
+
+        # Step 2: Call SmartBrowz convert endpoint
+        sb_resp = _requests.post(
+            f"https://api.catalyst.zoho.in/browser360/v1/project/{project_id}/convert",
+            headers={
+                "Authorization": f"Zoho-oauthtoken {access_token}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "html": html_content,
+                "output_options": {"output_type": "pdf"}
+            },
+            timeout=30
+        )
+
+        if sb_resp.status_code == 200 and "pdf" in sb_resp.headers.get("Content-Type", "").lower():
+            print("SmartBrowz PDF generated successfully via India DC")
+            return Response(
+                content=sb_resp.content,
+                media_type="application/pdf",
+                headers={"X-PDF-Engine": "Zoho-SmartBrowz-Cloud-IN"}
+            )
+        else:
+            raise ValueError(f"SmartBrowz returned {sb_resp.status_code}: {sb_resp.text[:200]}")
+
     except Exception as e:
-        print(f"SmartBrowz SDK skipped/failed ({e}). Rendering via ReportLab engine.")
+        print(f"SmartBrowz exception: {e}")
+        print("SmartBrowz skipped. Rendering via ReportLab engine.")
     
     # Fallback: Server-side ReportLab PDF rendering
     pdf_bytes = generate_pdf_dossier_reportlab(data)
-    return Response(content=pdf_bytes, media_type="application/pdf")
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"X-PDF-Engine": "ReportLab-Server-Engine"}
+    )
 
 
 @router.get("/{report_type}", response_model=Dict[str, Any], status_code=status.HTTP_200_OK)
