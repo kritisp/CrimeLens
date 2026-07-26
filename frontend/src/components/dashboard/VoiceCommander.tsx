@@ -116,7 +116,7 @@ export function VoiceCommander() {
 
   return (
     <>
-      <div className="fixed bottom-6 right-6 z-50 print:hidden flex flex-col items-end gap-3 font-mono">
+      <div className="fixed bottom-24 right-6 z-50 print:hidden flex flex-col items-end gap-3 font-mono">
         
         {showLangMenu && (
           <div className="bg-navy-900 border border-slate-700 rounded-lg p-2 flex flex-col gap-1 shadow-lg animate-fade-in mb-2">
