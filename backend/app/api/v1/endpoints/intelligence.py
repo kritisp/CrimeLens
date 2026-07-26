@@ -47,10 +47,14 @@ from app.services.ai.gemini_service import get_gemini_service
 router = APIRouter(prefix="/intelligence", tags=["intelligence"])
 
 @router.get("/dossier/{case_id}")
-async def get_dossier_by_id(case_id: str, db: Session = Depends(get_db)):
+async def get_dossier_by_id(case_id: str):
     """Alias route to fetch case dossier by ID."""
+    from sqlalchemy.ext.asyncio import AsyncSession
+    from app.infrastructure.database.setup import get_db as async_get_db
     from app.api.v1.endpoints.cases import get_case
-    return await get_case(case_id, db)
+    # Get async DB session directly
+    async for db in async_get_db():
+        return await get_case(case_id, db)
 
 
 def to_fir_response(case: CaseMaster) -> FIRResponse:

@@ -135,16 +135,17 @@ async def generate_smartbrowz_dossier(request: Request):
     Accepts any JSON payload - extracts overview/incident/evidence flexibly.
     """
     import json as _json
-    try:
-        raw_body = await request.body()
-        body = _json.loads(raw_body)
-    except Exception:
-        body = {}
 
-    # Flexibly extract fields - frontend may send the full dossierData object
-    ov = body.get("overview") or {}
-    inc = body.get("incident") or {}
-    ev_list = body.get("evidence") or []
+    # Read raw body (works for both Swagger JSON and frontend text/plain CORS bypass)
+    try:
+        raw_bytes = await request.body()
+        parsed = _json.loads(raw_bytes) if raw_bytes else {}
+    except Exception:
+        parsed = {}
+
+    ov = parsed.get("overview") or {}
+    inc = parsed.get("incident") or {}
+    ev_list = parsed.get("evidence") or []
 
     # Build a DossierData-compatible object for ReportLab fallback
     class _FakeDossier:
@@ -152,6 +153,7 @@ async def generate_smartbrowz_dossier(request: Request):
         incident = inc
         evidence = ev_list
     data = _FakeDossier()
+
 
     html_content = f"""
     <!DOCTYPE html>
