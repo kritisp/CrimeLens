@@ -1,7 +1,7 @@
 """
 CrimeLens AI — API Authentication Endpoints
 
-Provides route handlers for JWT login and profile queries.
+Provides route handlers for JWT login using Supabase/PostgreSQL native Auth.
 """
 
 from __future__ import annotations
@@ -11,11 +11,18 @@ from typing import Any, Dict
 from fastapi import APIRouter, HTTPException, status, Depends
 from jose import jwt
 from pydantic import BaseModel, Field
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+from passlib.context import CryptContext
 
 from app.core.config import get_settings
+from app.infrastructure.database.setup import get_db
+from app.models.investigator import Investigator
 
 router = APIRouter()
 settings = get_settings()
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 class LoginRequest(BaseModel):
@@ -33,50 +40,41 @@ class LoginResponse(BaseModel):
 
 
 @router.post("/login", response_model=LoginResponse, status_code=status.HTTP_200_OK)
-async def login(body: LoginRequest) -> LoginResponse:
+async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)) -> LoginResponse:
     """
-    Authenticates investigator credentials using a Hybrid approach:
-    Validates IAM existence via Zoho Catalyst Auth, then returns a signed JWT token.
+    Authenticates investigator credentials using PostgreSQL DB (Supabase).
     """
-    if body.email == "admin@ksp.gov.in" and body.password == "admin123":
-        
-        # Verify Identity against Zoho Catalyst Auth
-        try:
-            import zcatalyst_sdk
-            app = zcatalyst_sdk.initialize()
-            auth = app.authentication()
-            
-            # This proves to the judges we are utilizing Zoho Auth for IAM
-            try:
-                catalyst_user = auth.get_user_details(body.email)
-                print(f"Verified user in Catalyst Auth: {catalyst_user.get_user_id()}")
-            except Exception as inner_e:
-                print(f"Catalyst user check failed (are they registered?): {inner_e}")
-                
-        except Exception as e:
-            print(f"Catalyst Auth SDK skipped locally: {e}")
+    result = await db.execute(select(Investigator).where(Investigator.email == body.email))
+    user = result.scalars().first()
 
-        # Generate token payload
-        expire = datetime.now(timezone.utc) + timedelta(minutes=settings.jwt_access_token_expire_minutes)
-        payload = {
-            "sub": body.email,
-            "role": body.role,
-            "badge_id": "KSP-2026-9041",
-            "exp": expire
-        }
-        
-        # Encode JWT
-        token = jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
-        
-        return LoginResponse(
-            access_token=token,
-            token_type="bearer",
-            email=body.email,
-            role=body.role,
-            badge_id="KSP-2026-9041"
+    if not user or not pwd_context.verify(body.password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid username or password credentials."
         )
-        
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Invalid username or password credentials."
+
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Account is suspended."
+        )
+
+    # Generate token payload
+    expire = datetime.now(timezone.utc) + timedelta(minutes=settings.jwt_access_token_expire_minutes)
+    payload = {
+        "sub": user.email,
+        "role": user.role,
+        "badge_id": user.badge_id,
+        "exp": expire
+    }
+    
+    # Encode JWT
+    token = jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
+    
+    return LoginResponse(
+        access_token=token,
+        token_type="bearer",
+        email=user.email,
+        role=user.role,
+        badge_id=user.badge_id or "UNKNOWN"
     )
