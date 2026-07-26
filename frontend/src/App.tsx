@@ -14,26 +14,30 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import { Login } from "./pages/Login";
 import JudgePresentationConsole from "./components/JudgePresentationConsole";
 
+import { ProtectedRoute } from "./components/ProtectedRoute";
+
 function App() {
   return (
     <BrowserRouter>
       <ErrorBoundary>
         <Routes>
           <Route path="/" element={<Login />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/cases" element={<Cases />} />
-          <Route path="/cases/:id" element={<CaseDetailPage />} />
-          <Route path="/register-fir" element={<RegisterFIR />} />
-          <Route path="/crime-intelligence" element={<CrimeIntelligence />} />
-          <Route path="/intelligence" element={<CrimeIntelligence />} />
-          <Route path="/network-explorer" element={<NetworkExplorer />} />
-          <Route path="/network" element={<NetworkExplorer />} />
-          <Route path="/ai-assistant" element={<AIAssistant />} />
-          <Route path="/chat" element={<AIAssistant />} />
-          <Route path="/analytics" element={<Analytics />} />
-          <Route path="/officers" element={<Officers />} />
-          <Route path="/reports" element={<Reports />} />
-          <Route path="/settings" element={<Settings />} />
+          <Route element={<ProtectedRoute />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/cases" element={<Cases />} />
+            <Route path="/cases/:id" element={<CaseDetailPage />} />
+            <Route path="/register-fir" element={<RegisterFIR />} />
+            <Route path="/crime-intelligence" element={<CrimeIntelligence />} />
+            <Route path="/intelligence" element={<CrimeIntelligence />} />
+            <Route path="/network-explorer" element={<NetworkExplorer />} />
+            <Route path="/network" element={<NetworkExplorer />} />
+            <Route path="/ai-assistant" element={<AIAssistant />} />
+            <Route path="/chat" element={<AIAssistant />} />
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/officers" element={<Officers />} />
+            <Route path="/reports" element={<Reports />} />
+            <Route path="/settings" element={<Settings />} />
+          </Route>
         </Routes>
         <JudgePresentationConsole />
       </ErrorBoundary>

@@ -40,6 +40,7 @@ export function CaseDetailPanel({ record, onClose }: CaseDetailPanelProps) {
   const [noteType, setNoteType] = useState<"private" | "shared">("shared");
 
   // Hackathon feature states
+  const [uploadStatus, setUploadStatus] = useState<"idle" | "scanning" | "error">("idle");
   const [isScanning, setIsScanning] = useState(false);
   const [scanLog, setScanLog] = useState<string[]>([]);
   const [scanResult, setScanResult] = useState<string | null>(null);
@@ -331,24 +332,90 @@ export function CaseDetailPanel({ record, onClose }: CaseDetailPanelProps) {
     }
   };
 
-  const startEvidenceScan = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const startEvidenceScan = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
-    setIsScanning(true);
-    setScanResult(null);
-    setScanLog(["[SYSTEM] Initializing forensic scanning sweeps...", "[SECURE] Connecting to National Crime Records Bureau database..."]);
     
-    setTimeout(() => {
-      setScanLog(prev => [...prev, "[SCAN] Extracting facial markers and ridge density...", "[DB] Matching biometric hash templates..."]);
-    }, 8000);
+    setUploadStatus("scanning");
+    const file = e.target.files[0];
+    
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      
+      // Pass case ID to trigger backend Copilot loop
+      if (dossierData && dossierData.overview) {
+        const rawId = dossierData.overview.id || dossierData.overview.firNumber || "0";
+        const numericId = rawId.replace(/[^0-9]/g, '');
+        if (numericId) {
+          formData.append("case_id", numericId);
+        }
+      }
 
-    setTimeout(() => {
-      setScanLog(prev => [...prev, "[AI] Calculating similarity matrix overlays...", "[NCRB] 1 potential record match identified."]);
-    }, 1600);
+      const res = await fetch("/api/v1/intelligence/extract-evidence", {
+        method: "POST",
+        body: formData
+      });
 
-    setTimeout(() => {
-      setIsScanning(false);
-      setScanResult("98% Match Confirmed: Alias 'Rony' (Rohan Gupta) - Salt Lake Crime Registry");
-    }, 2400);
+      if (res.ok) {
+        const data = await res.json();
+        const extracted = data.synthesized_intelligence;
+        
+        // Convert the Gemini intelligence into our local evidence structure
+        const newEvidences = [];
+        
+        if (extracted.entities && extracted.entities.length > 0) {
+          newEvidences.push({
+            id: `EV-AI-${Date.now()}-1`,
+            label: "AI Extracted Entities",
+            type: "Digital",
+            hash: data.zia_raw_data.source || "SHA-256-PENDING",
+            timestamp: new Date().toISOString().slice(0, 16).replace("T", " "),
+            desc: extracted.entities.join(", "),
+            tags: ["AI-Extracted", "Zia+Gemini"]
+          });
+        }
+        
+        if (extracted.weapons && extracted.weapons.length > 0) {
+          newEvidences.push({
+            id: `EV-AI-${Date.now()}-2`,
+            label: "Identified Weapons",
+            type: "Physical",
+            hash: "SHA-256-PENDING",
+            timestamp: new Date().toISOString().slice(0, 16).replace("T", " "),
+            desc: extracted.weapons.join(", "),
+            tags: ["Weapon", "Threat"]
+          });
+        }
+
+        if (extracted.summary) {
+          newEvidences.push({
+            id: `EV-AI-${Date.now()}-3`,
+            label: "Intelligence Summary",
+            type: "Document",
+            hash: "SHA-256-PENDING",
+            timestamp: new Date().toISOString().slice(0, 16).replace("T", " "),
+            desc: extracted.summary,
+            tags: ["Summary"]
+          });
+        }
+
+        // Add to state
+        setDossierData((prev: any) => ({
+          ...prev,
+          evidence: [...newEvidences, ...prev.evidence]
+        }));
+        
+        setUploadStatus("idle");
+      } else {
+        console.error("Evidence extraction failed");
+        setUploadStatus("error");
+        setTimeout(() => setUploadStatus("idle"), 3000);
+      }
+    } catch (err) {
+      console.error(err);
+      setUploadStatus("error");
+      setTimeout(() => setUploadStatus("idle"), 3000);
+    }
   };
 
   const handleValidateLedger = (evId: string) => {
@@ -843,13 +910,13 @@ export function CaseDetailPanel({ record, onClose }: CaseDetailPanelProps) {
                         accept="image/*"
                         onChange={startEvidenceScan}
                         className="absolute inset-0 opacity-0 cursor-pointer z-10"
-                        disabled={isScanning}
+                        disabled={uploadStatus === "scanning"}
                       />
                       <Bot className="h-8 w-8 text-cyan-accent mb-2 group-hover:scale-110 transition-transform duration-300" />
                       <p className="text-xs font-mono font-bold text-slate-300">Drag & Drop Suspect Mugshot / Evidence Scan</p>
                       <p className="text-[10px] text-slate-500 mt-1 uppercase font-mono">Supports JPEG, PNG • Interactive OCR & Biometrics Match</p>
                       
-                      {isScanning && (
+                      {uploadStatus === "scanning" && (
                         <div className="absolute inset-0 bg-navy-950/90 flex flex-col items-center justify-center p-4">
                           {/* Laser Scanning Animation */}
                           <div className="absolute left-0 w-full h-[2px] bg-cyan-400 shadow-[0_0_12px_#22d3ee] animate-[scan_2s_ease-in-out_infinite]" />
@@ -862,14 +929,16 @@ export function CaseDetailPanel({ record, onClose }: CaseDetailPanelProps) {
                     {/* Console Output logs */}
                     <div className="bg-black/60 border border-white/10 rounded-xl p-4 font-mono text-[10px] flex flex-col justify-between min-h-[140px]">
                       <div className="space-y-1.5 overflow-y-auto max-h-[110px] text-slate-400">
-                        {scanLog.length === 0 ? (
-                          <span className="text-slate-600 block">SYSTEM STATUS: IDLE. Ready for evidence scan upload.</span>
+                        <div className="mt-4 p-3 bg-slate-900 border border-slate-700/50 rounded-lg text-[10px] font-mono text-slate-400">
+                        {uploadStatus === "scanning" ? (
+                          <span className="text-cyan-400 animate-pulse flex items-center gap-2">
+                            <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
+                            [ZIA+GEMINI] ANALYZING EVIDENCE PACKET...
+                          </span>
+                        ) : uploadStatus === "error" ? (
+                          <span className="text-rose-400 block">ERROR: Extraction failed. Please try again.</span>
                         ) : (
-                          scanLog.map((log, idx) => (
-                            <div key={idx} className="flex gap-1.5">
-                              <span className="text-cyan-400 shrink-0">&gt;&gt;</span>
-                              <span>{log}</span>
-                            </div>
+                          <span className="text-slate-600 block">SYSTEM STATUS: IDLE. Ready for evidence scan upload.</span>
                           ))
                         )}
                         {scanResult && (

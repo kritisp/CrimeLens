@@ -2229,6 +2229,42 @@ async def process_voice_intent(payload: VoiceIntentRequest):
     except Exception as e:
         return {"action": "UNKNOWN", "route": None, "reply": "Failed to process intent."}
 
+@router.post("/extract-evidence")
+async def extract_evidence(
+    file: UploadFile = File(...),
+    case_id: int = Form(default=0),
+    background_tasks: BackgroundTasks = BackgroundTasks(),
+    db: Session = Depends(get_db)
+):
+    from app.services.ai.zia_service import get_zia_service
+    from app.services.ai.gemini_service import get_gemini_service
+    from app.services.auto_investigation import run_auto_investigation
+    
+    file_bytes = await file.read()
+    filename = file.filename or "unknown.pdf"
+    
+    zia = get_zia_service()
+    gemini = get_gemini_service()
+    
+    try:
+        # Step 1: Zia extracts raw facts
+        zia_data = await zia.analyze_evidence(file_bytes, filename)
+        
+        # Step 2: Gemini synthesizes the intelligence
+        intelligence = await gemini.synthesize_evidence(zia_data, filename)
+        
+        # Trigger the Investigator Copilot loop to update the case with new evidence findings
+        if case_id > 0:
+            background_tasks.add_task(run_auto_investigation, case_id, [], db)
+        
+        return {
+            "status": "success",
+            "zia_raw_data": zia_data,
+            "synthesized_intelligence": intelligence
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.post("/query-case")
 async def query_case(payload: CopilotQueryRequest, db: Session = Depends(get_db)):
     from app.models.copilot import CopilotFile, CopilotEntity
