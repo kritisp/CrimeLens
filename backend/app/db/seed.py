@@ -205,10 +205,6 @@ def migrate_existing_to_normalized(db: Session):
     Auto-migration utility that copies flat data from the legacy 'firs' table
     into the normalized relational entities on startup, mapping all relations cleanly.
     """
-    if db.query(CaseMaster).first() is not None:
-        print("Normalized database tables already seeded/populated. Skipping migration...")
-        return
-
     print("Executing auto-migration: Porting legacy FIRs to normalized tables...")
     
     legacy_firs = db.query(FIRModel).all()

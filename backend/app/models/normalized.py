@@ -129,7 +129,7 @@ class ComplainantDetails(Base):
     Complainant Details.
     Multiple Complainants can link to a single CaseMaster.
     """
-    __tablename__ = "complainant_details"
+    __tablename__ = "norm_complainants"
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     case_id = Column(String, ForeignKey("case_masters.id", ondelete="CASCADE"), nullable=False)
@@ -147,7 +147,7 @@ class Victim(Base):
     """
     Victim details linked to a CaseMaster.
     """
-    __tablename__ = "victims"
+    __tablename__ = "norm_victims"
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     case_id = Column(String, ForeignKey("case_masters.id", ondelete="CASCADE"), nullable=False)
@@ -165,7 +165,7 @@ class Accused(Base):
     """
     Accused details linked to a CaseMaster.
     """
-    __tablename__ = "accused"
+    __tablename__ = "norm_accused"
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     case_id = Column(String, ForeignKey("case_masters.id", ondelete="CASCADE"), nullable=False)
@@ -183,7 +183,7 @@ class ChargesheetDetails(Base):
     Chargesheet filed for a completed CaseMaster.
     One CaseMaster has at most one ChargesheetDetails.
     """
-    __tablename__ = "chargesheet_details"
+    __tablename__ = "norm_chargesheets"
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     case_id = Column(String, ForeignKey("case_masters.id", ondelete="CASCADE"), nullable=False, unique=True)
