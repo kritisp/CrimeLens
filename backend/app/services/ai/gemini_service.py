@@ -85,7 +85,7 @@ class GeminiService:
             except Exception as exc:
                 logger.error("Gemini API call failed: %s. Falling back to local smart engine.", exc)
 
-        use_mock = os.getenv("USE_MOCK_AI", "false").lower() == "true"
+        use_mock = os.getenv("USE_MOCK_AI", "true").lower() == "true"
         if use_mock:
             return self._local_smart_chat(message, history)
         return "AI service temporarily unavailable."
@@ -152,7 +152,7 @@ class GeminiService:
             except Exception as exc:
                 logger.error("Gemini draft API error: %s. Using local draft generator.", exc)
 
-        use_mock = os.getenv("USE_MOCK_AI", "false").lower() == "true"
+        use_mock = os.getenv("USE_MOCK_AI", "true").lower() == "true"
         if use_mock:
             return self._local_smart_draft(messages)
         return "AI service temporarily unavailable."
@@ -254,7 +254,7 @@ class GeminiService:
             except Exception as exc:
                 logger.error("Error generating intelligence briefing via Gemini API: %s", exc)
 
-        use_mock = os.getenv("USE_MOCK_AI", "false").lower() == "true"
+        use_mock = os.getenv("USE_MOCK_AI", "true").lower() == "true"
         if use_mock:
             return self._local_smart_briefing(stats_context)
         return "AI service temporarily unavailable."
@@ -307,7 +307,7 @@ class GeminiService:
             except Exception as exc:
                 logger.error("Gemini Copilot API error: %s", exc)
 
-        use_mock = os.getenv("USE_MOCK_AI", "false").lower() == "true"
+        use_mock = os.getenv("USE_MOCK_AI", "true").lower() == "true"
         if not use_mock:
             return "AI service temporarily unavailable."
 
