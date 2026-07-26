@@ -23,8 +23,8 @@ function createEmptyConversation(): Conversation {
   const id = createId();
   return {
     id,
-    title: "New FIR Registration",
-    preview: "Start describing your incident...",
+    title: "New Investigation Chat",
+    preview: "Start describing your case or ask a question...",
     updatedAt: "Just now",
     isComplete: false,
     messages: [
@@ -32,7 +32,7 @@ function createEmptyConversation(): Conversation {
         id: createId(),
         role: "assistant",
         content:
-          "Hello, I'm your FIR Registration Assistant. Please describe the incident you'd like to report, and I'll guide you through filing an FIR.",
+          "Hello, I am your Crime Intelligence Copilot. How can I assist you today? You can ask me to analyze crime data, answer law enforcement questions, or help you draft a new FIR.",
         timestamp: getTimestamp(),
       },
     ],
