@@ -57,8 +57,7 @@ export async function sendChatMessage(
   messages: ChatApiRequest["messages"],
   language?: string
 ): Promise<ChatApiResponse & { stats?: any; timeline?: any; networkPreview?: any; heatmapPreview?: any; recommendations?: any; caseId?: any; actions?: any }> {
-  const latestMessage = messages[messages.length - 1]?.content || "";
-  const lowerMessage = latestMessage.toLowerCase();
+
 
   const payload: ChatApiRequest = {
     messages,

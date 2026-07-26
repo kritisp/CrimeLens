@@ -10,7 +10,7 @@ import {
   ChevronRight, Layers, Zap,
   User, Phone, Car, MapPin, Lock,
   Brain, Activity, Clock, CheckCircle, XCircle,
-  AlertCircle, BookOpen, Users
+  AlertCircle, BookOpen, Users, TrendingUp
 } from "lucide-react";
 import { DashboardLayout } from "../components/layout/DashboardLayout";
 import { GlassCard } from "../components/ui/GlassCard";
@@ -18,7 +18,8 @@ import {
   AreaChart, Area, BarChart, Bar,
   PieChart, Pie, Cell, RadarChart, Radar, PolarGrid,
   PolarAngleAxis, PolarRadiusAxis, Tooltip as ReTooltip,
-  Legend, ResponsiveContainer, XAxis, YAxis, CartesianGrid
+  Legend, ResponsiveContainer, XAxis, YAxis, CartesianGrid,
+  ScatterChart, Scatter, ZAxis
 } from "recharts";
 import { InteractiveResponse } from "../components/ai-assistant/InteractiveResponse";
 
@@ -73,7 +74,7 @@ interface CrimeSignature {
 interface NetworkNode { id: string; label: string; type: string; details: string; [key: string]: any; }
 interface NetworkLink { source: string; target: string; type: string; strength?: number; aiExplanation?: string; }
 
-type TabId = "map" | "chat" | "analytics" | "signatures" | "network" | "copilot";
+type TabId = "map" | "chat" | "analytics" | "signatures" | "network" | "copilot" | "predictive";
 
 const BENGALURU_CENTER: [number, number] = [12.9716, 77.5946];
 const CHART_COLORS = ["#06b6d4", "#ec4899", "#f59e0b", "#10b981", "#8b5cf6", "#f97316"];
@@ -128,6 +129,8 @@ export function CrimeIntelligence() {
   const [analyticsData, setAnalyticsData] = useState<any>(null);
   const [signatures, setSignatures] = useState<CrimeSignature[]>([]);
   const [networkData, setNetworkData] = useState<{ nodes: NetworkNode[]; links: NetworkLink[]; insights: string } | null>(null);
+  const [predictionsData, setPredictionsData] = useState<any>(null);
+  const [riskData, setRiskData] = useState<any>(null);
 
   // Selected state
   const [selectedRecord, setSelectedRecord] = useState<FIRRecord | null>(null);
@@ -239,6 +242,20 @@ export function CrimeIntelligence() {
     } catch (err) { console.error("Network fetch error:", err); }
   }, []);
 
+  const fetchPredictions = useCallback(async () => {
+    try {
+      const res = await fetch("/api/v1/intelligence/predictions");
+      if (res.ok) setPredictionsData(await res.json());
+    } catch (err) { console.error("Predictions fetch error:", err); }
+  }, []);
+
+  const fetchRisk = useCallback(async () => {
+    try {
+      const res = await fetch("/api/v1/intelligence/risk");
+      if (res.ok) setRiskData(await res.json());
+    } catch (err) { console.error("Risk fetch error:", err); }
+  }, []);
+
   const fetchCopilot = useCallback(async (caseId: string) => {
     if (!caseId.trim()) return;
     setCopilotLoading(true);
@@ -256,6 +273,10 @@ export function CrimeIntelligence() {
     if (activeTab === "analytics" && !analyticsData) fetchAnalytics();
     if (activeTab === "signatures" && signatures.length === 0) fetchSignatures();
     if (activeTab === "network" && !networkData) fetchNetwork();
+    if (activeTab === "predictive") {
+      if (!predictionsData) fetchPredictions();
+      if (!riskData) fetchRisk();
+    }
   }, [activeTab]);
 
   // ─── Time slider & play ───────────────────────────────────────────────
@@ -611,9 +632,10 @@ export function CrimeIntelligence() {
     { id: "map", label: "GIS Map", icon: Map, color: "text-cyan-400" },
     { id: "chat", label: "AI Chat", icon: MessageSquare, color: "text-fuchsia-400" },
     { id: "analytics", label: "Analytics", icon: BarChart3, color: "text-amber-400" },
+    { id: "predictive", label: "Predictive Intel", icon: TrendingUp, color: "text-emerald-400" },
     { id: "signatures", label: "MO Signatures", icon: Target, color: "text-rose-400" },
-    { id: "network", label: "Criminal Network", icon: Network, color: "text-emerald-400" },
-    { id: "copilot", label: "Case Copilot", icon: Brain, color: "text-violet-400" },
+    { id: "network", label: "Criminal Network", icon: Network, color: "text-violet-400" },
+    { id: "copilot", label: "Case Copilot", icon: Brain, color: "text-indigo-400" },
   ];
 
   const riskColor = (level: string) => level === "Red" || level === "High" ? "text-rose-400 bg-rose-950/40 border-rose-500/30" : level === "Orange" || level === "Medium" ? "text-orange-400 bg-orange-950/40 border-orange-500/30" : "text-amber-400 bg-amber-950/40 border-amber-500/30";
@@ -1451,6 +1473,164 @@ export function CrimeIntelligence() {
                   <p className="text-slate-500 text-sm">Enter a FIR number above to load the AI case analysis.</p>
                   <p className="text-slate-600 text-[11px] mt-1">The copilot will provide timelines, legal sections, evidence checklists, and next actions.</p>
                 </div>
+              )}
+            </div>
+          )}
+
+          {/* ════════════════════════════════════ TAB: PREDICTIVE INTEL ════════════════════════════════════ */}
+          {activeTab === "predictive" && (
+            <div className="h-full overflow-y-auto p-4 space-y-4">
+              <div className="flex items-center gap-3 bg-emerald-500/5 border border-emerald-500/20 rounded-2xl p-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-400">
+                  <TrendingUp className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-white">AI-Driven Predictive & Sociological Analytics</p>
+                  <p className="text-[10px] text-slate-400">Overlays spatiotemporal cluster maps with district-level socio-economic indicators and AI threat scoring models.</p>
+                </div>
+              </div>
+
+              {!predictionsData || !riskData ? (
+                <div className="flex items-center justify-center h-40">
+                  <div className="h-8 w-8 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
+                </div>
+              ) : (
+                <>
+                  {/* KPI Row */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <GlassCard className="p-4 flex items-center justify-between border-emerald-500/25 bg-emerald-950/5">
+                      <div>
+                        <p className="text-[9px] text-slate-500 uppercase font-semibold">Predicted Trend (Next 30 Days)</p>
+                        <p className="text-xl font-black text-emerald-400 font-mono">+{predictionsData.expected_increase_pct}% Spike</p>
+                      </div>
+                      <TrendingUp className="h-8 w-8 text-emerald-500/35" />
+                    </GlassCard>
+
+                    <GlassCard className="p-4 flex items-center justify-between border-rose-500/25 bg-rose-950/5">
+                      <div>
+                        <p className="text-[9px] text-slate-500 uppercase font-semibold">Active Threat Typology</p>
+                        <p className="text-xl font-black text-rose-400 font-mono">Cyber Fraud ({(predictionsData.cyber_probability * 100).toFixed(0)}% Probability)</p>
+                      </div>
+                      <AlertTriangle className="h-8 w-8 text-rose-500/35" />
+                    </GlassCard>
+
+                    <GlassCard className="p-4 flex items-center justify-between border-cyan-500/25 bg-cyan-950/5">
+                      <div>
+                        <p className="text-[9px] text-slate-500 uppercase font-semibold">AI Recommended Deployment</p>
+                        <p className="text-xl font-black text-cyan-400 font-mono">High-Density Patrols</p>
+                      </div>
+                      <Zap className="h-8 w-8 text-cyan-500/35" />
+                    </GlassCard>
+                  </div>
+
+                  {/* Main Grid: Correlation & Forecast */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {/* Socio-Economic Bubble Chart */}
+                    <GlassCard className="p-5 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider">Socio-Economic Threat Correlation</h3>
+                          <span className="text-[9px] rounded-full bg-emerald-500/10 px-2 py-0.5 text-emerald-400 font-bold font-mono">Urbanization vs Population Density</span>
+                        </div>
+                        <p className="text-[10px] text-slate-400 mb-4">
+                          Visualizes how crime threat metrics map onto socio-demographic indicators across Karnataka police zones. Size of the node indicates the AI calculated risk score.
+                        </p>
+                      </div>
+                      <div className="h-[240px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <ScatterChart margin={{ top: 10, right: 10, bottom: 10, left: -20 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" />
+                            <XAxis type="number" dataKey="density" name="Density" unit=" p/km²" tick={{ fill: "#94a3b8", fontSize: 9 }} />
+                            <YAxis type="number" dataKey="urbanization" name="Urbanization" unit="%" tick={{ fill: "#94a3b8", fontSize: 9 }} />
+                            <ZAxis type="number" dataKey="risk" range={[60, 420]} name="Risk Index" />
+                            <ReTooltip cursor={{ strokeDasharray: '3 3' }} contentStyle={{ background: "#0f172a", border: "1px solid #ffffff20", borderRadius: 8, fontSize: 10 }} />
+                            <Scatter name="District Vulnerability" data={
+                              riskData.map((d: any) => {
+                                // Match mock socio-demographics for KSP districts
+                                let density = 1500;
+                                let urbanization = 45;
+                                if (d.district === "Bengaluru City") { density = 11000; urbanization = 95; }
+                                else if (d.district === "Mysuru City") { density = 5000; urbanization = 75; }
+                                else if (d.district === "Hubballi-Dharwad") { density = 4500; urbanization = 70; }
+                                else if (d.district === "Mangaluru") { density = 3800; urbanization = 68; }
+                                else if (d.district === "Belagavi") { density = 2500; urbanization = 55; }
+                                return {
+                                  name: d.district,
+                                  density,
+                                  urbanization,
+                                  risk: d.risk_score
+                                };
+                              })
+                            } fill="#10b981" />
+                          </ScatterChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </GlassCard>
+
+                    {/* Forecast Weekly Trends */}
+                    <GlassCard className="p-5 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider">Temporal Threat Forecasting</h3>
+                          <span className="text-[9px] rounded-full bg-cyan-500/10 px-2 py-0.5 text-cyan-400 font-bold font-mono">Weekly Projection</span>
+                        </div>
+                        <p className="text-[10px] text-slate-400 mb-4">
+                          Predictive distribution of offenses across days of the week, indicating high-alert windows based on ML temporal forecasts.
+                        </p>
+                      </div>
+                      <div className="h-[240px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={predictionsData.weekly_trends}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" />
+                            <XAxis dataKey="day" tick={{ fill: "#94a3b8", fontSize: 10 }} />
+                            <YAxis tick={{ fill: "#94a3b8", fontSize: 10 }} unit="%" />
+                            <ReTooltip contentStyle={{ background: "#0f172a", border: "1px solid #ffffff20", borderRadius: 8, fontSize: 10 }} />
+                            <Bar dataKey="percentage" fill="#06b6d4" radius={[4, 4, 0, 0]} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </GlassCard>
+                  </div>
+
+                  {/* Seasonal Analysis & Anomaly Detection */}
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    {/* Seasonal Trends */}
+                    <GlassCard className="p-4 col-span-1">
+                      <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider mb-2">Seasonal Risk Trends</h3>
+                      <p className="text-[10px] text-slate-400 mb-3">AI prediction of seasonal category shift thresholds.</p>
+                      <div className="h-[140px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie data={predictionsData.seasonal_trends} dataKey="percentage" nameKey="season" cx="50%" cy="50%" outerRadius={50}>
+                              {predictionsData.seasonal_trends.map((_: any, idx: number) => <Cell key={idx} fill={CHART_COLORS[idx % CHART_COLORS.length]} />)}
+                            </Pie>
+                            <ReTooltip contentStyle={{ background: "#0f172a", border: "1px solid #ffffff20", fontSize: 10 }} />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </GlassCard>
+
+                    {/* AI Threat Predictions Console */}
+                    <GlassCard className="p-4 col-span-2">
+                      <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider mb-2 flex items-center gap-1.5"><Sparkles className="h-4 w-4 text-emerald-400" /> AI Anomaly Detection Console</h3>
+                      <p className="text-[10px] text-slate-400 mb-3">Real-time alerts for behaviors deviating from historic baseline indicators.</p>
+                      <div className="space-y-2">
+                        {predictionsData.insights?.map((insight: string, idx: number) => {
+                          const isHighAlert = insight.includes("spike") || insight.includes("growth") || insight.includes("escalate");
+                          return (
+                            <div key={idx} className={`p-2.5 rounded-xl border text-[11px] leading-relaxed flex items-start gap-2 ${isHighAlert ? "bg-rose-500/5 border-rose-500/15 text-rose-300" : "bg-white/[0.02] border-white/5 text-slate-300"}`}>
+                              <AlertCircle className={`h-4 w-4 shrink-0 mt-0.5 ${isHighAlert ? "text-rose-400" : "text-emerald-400"}`} />
+                              <div>
+                                <span className="font-bold mr-1">{isHighAlert ? "[TREND ANOMALY ALERT]" : "[INTELLIGENCE INSIGHT]"}</span>
+                                {insight}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </GlassCard>
+                  </div>
+                </>
               )}
             </div>
           )}

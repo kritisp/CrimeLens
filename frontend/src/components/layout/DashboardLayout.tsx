@@ -27,7 +27,7 @@ export function DashboardLayout({ children, mainClassName }: DashboardLayoutProp
           {children}
         </main>
       </div>
-      <VoiceCommander />
+      <VoiceCommander sidebarCollapsed={sidebarCollapsed} />
     </div>
   );
 }

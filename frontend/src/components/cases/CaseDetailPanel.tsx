@@ -41,8 +41,6 @@ export function CaseDetailPanel({ record, onClose }: CaseDetailPanelProps) {
 
   // Hackathon feature states
   const [uploadStatus, setUploadStatus] = useState<"idle" | "scanning" | "error">("idle");
-  const [isScanning, setIsScanning] = useState(false);
-  const [scanLog, setScanLog] = useState<string[]>([]);
   const [scanResult, setScanResult] = useState<string | null>(null);
   const [expandedLedger, setExpandedLedger] = useState<string | null>(null);
   const [verifiedLedgers, setVerifiedLedgers] = useState<string[]>([]);
@@ -361,7 +359,7 @@ export function CaseDetailPanel({ record, onClose }: CaseDetailPanelProps) {
         const extracted = data.synthesized_intelligence;
         
         // Convert the Gemini intelligence into our local evidence structure
-        const newEvidences = [];
+        const newEvidences: any[] = [];
         
         if (extracted.entities && extracted.entities.length > 0) {
           newEvidences.push({
@@ -405,9 +403,11 @@ export function CaseDetailPanel({ record, onClose }: CaseDetailPanelProps) {
           evidence: [...newEvidences, ...prev.evidence]
         }));
         
+        setScanResult("Evidence packet successfully analyzed.");
         setUploadStatus("idle");
       } else {
         console.error("Evidence extraction failed");
+        setScanResult(null);
         setUploadStatus("error");
         setTimeout(() => setUploadStatus("idle"), 3000);
       }
@@ -930,17 +930,17 @@ export function CaseDetailPanel({ record, onClose }: CaseDetailPanelProps) {
                     <div className="bg-black/60 border border-white/10 rounded-xl p-4 font-mono text-[10px] flex flex-col justify-between min-h-[140px]">
                       <div className="space-y-1.5 overflow-y-auto max-h-[110px] text-slate-400">
                         <div className="mt-4 p-3 bg-slate-900 border border-slate-700/50 rounded-lg text-[10px] font-mono text-slate-400">
-                        {uploadStatus === "scanning" ? (
-                          <span className="text-cyan-400 animate-pulse flex items-center gap-2">
-                            <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
-                            [ZIA+GEMINI] ANALYZING EVIDENCE PACKET...
-                          </span>
-                        ) : uploadStatus === "error" ? (
-                          <span className="text-rose-400 block">ERROR: Extraction failed. Please try again.</span>
-                        ) : (
-                          <span className="text-slate-600 block">SYSTEM STATUS: IDLE. Ready for evidence scan upload.</span>
-                          ))
-                        )}
+                          {uploadStatus === "scanning" ? (
+                            <span className="text-cyan-400 animate-pulse flex items-center gap-2">
+                              <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
+                              [ZIA+GEMINI] ANALYZING EVIDENCE PACKET...
+                            </span>
+                          ) : uploadStatus === "error" ? (
+                            <span className="text-rose-400 block">ERROR: Extraction failed. Please try again.</span>
+                          ) : (
+                            <span className="text-slate-600 block">SYSTEM STATUS: IDLE. Ready for evidence scan upload.</span>
+                          )}
+                        </div>
                         {scanResult && (
                           <div className="mt-2 p-2 bg-emerald-500/10 border border-emerald-500/30 rounded-lg text-emerald-400 font-bold animate-fade-in">
                             [SUCCESS] {scanResult}

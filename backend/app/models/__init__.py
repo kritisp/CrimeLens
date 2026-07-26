@@ -1,4 +1,5 @@
 from app.models.fir import FIRModel
+from app.models.investigator import Investigator
 from app.models.normalized import (
     District,
     PoliceStation,
@@ -14,6 +15,7 @@ from app.models.normalized import (
 
 __all__ = [
     "FIRModel",
+    "Investigator",
     "District",
     "PoliceStation",
     "Employee",

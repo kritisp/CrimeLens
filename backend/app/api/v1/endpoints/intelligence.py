@@ -2231,6 +2231,7 @@ async def process_voice_intent(payload: VoiceIntentRequest):
 
 @router.post("/extract-evidence")
 async def extract_evidence(
+    request: Request,
     file: UploadFile = File(...),
     case_id: int = Form(default=0),
     background_tasks: BackgroundTasks = BackgroundTasks(),
@@ -2247,8 +2248,8 @@ async def extract_evidence(
     gemini = get_gemini_service()
     
     try:
-        # Step 1: Zia extracts raw facts
-        zia_data = await zia.analyze_evidence(file_bytes, filename)
+        # Step 1: Zia extracts raw facts using the active request context
+        zia_data = await zia.analyze_evidence(file_bytes, filename, request)
         
         # Step 2: Gemini synthesizes the intelligence
         intelligence = await gemini.synthesize_evidence(zia_data, filename)

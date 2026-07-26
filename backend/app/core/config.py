@@ -88,6 +88,10 @@ class Settings(BaseSettings):
         default=480,  # 8 hours — covers a full police shift
         description="JWT access token lifetime in minutes.",
     )
+    super_admin_secret: str = Field(
+        default="crimeLens@SuperAdmin2026",
+        description="Hardcoded secret key required to register new investigators.",
+    )
 
     # ── Logging ───────────────────────────────────────────────────────────────
     log_level: str = Field(

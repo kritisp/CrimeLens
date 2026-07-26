@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Mic, Volume2, Bot, Globe } from "lucide-react";
 
-export function VoiceCommander() {
+export function VoiceCommander({ sidebarCollapsed = false }: { sidebarCollapsed?: boolean }) {
+  const leftClass = sidebarCollapsed ? "lg:left-[96px]" : "lg:left-[280px]";
   const navigate = useNavigate();
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState("");
@@ -116,7 +117,7 @@ export function VoiceCommander() {
 
   return (
     <>
-      <div className="fixed bottom-8 left-6 z-[9999] print:hidden flex flex-col items-start gap-3 font-mono">
+      <div className={`fixed bottom-8 ${leftClass} left-6 z-[9999] print:hidden flex flex-col items-start gap-3 transition-all duration-300 font-mono`}>
         
         {showLangMenu && (
           <div className="bg-navy-900 border border-slate-700 rounded-lg p-2 flex flex-col gap-1 shadow-lg animate-fade-in mb-2 self-start">
@@ -147,10 +148,11 @@ export function VoiceCommander() {
           </div>
         )}
 
-        <div className="flex gap-2">
+        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
           <button 
             onClick={() => setShowLangMenu(!showLangMenu)}
-            className="h-12 w-12 rounded-full border border-slate-700 bg-slate-900/80 text-slate-400 flex items-center justify-center hover:bg-slate-800 transition-colors"
+            style={{ width: "48px", height: "48px", flexShrink: 0 }}
+            className="rounded-full border border-slate-700 bg-slate-900/80 text-slate-400 flex items-center justify-center hover:bg-slate-800 transition-colors"
             title="Change Language"
           >
             <Globe className="h-5 w-5" />
@@ -158,7 +160,8 @@ export function VoiceCommander() {
           <button
             onClick={toggleListen}
             title="Toggle Voice Dispatch Commander"
-            className={`h-12 w-12 rounded-full border flex items-center justify-center transition-all duration-300 shadow-glow group ${
+            style={{ width: "48px", height: "48px", flexShrink: 0 }}
+            className={`rounded-full border flex items-center justify-center transition-all duration-300 shadow-glow group ${
               isListening
                 ? "bg-rose-500 border-rose-400 text-white animate-pulse"
                 : "bg-cyan-accent/10 border-cyan-accent/30 text-cyan-accent hover:bg-cyan-accent/20 hover:scale-105"
