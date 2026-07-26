@@ -43,9 +43,6 @@ def _extract_json_object(text: str) -> dict[str, str] | None:
     if not isinstance(payload, dict):
         return None
 
-    if not COMPLETION_JSON_KEYS.issubset(set(payload.keys())):
-        return None
-
     return {key: str(payload.get(key, "")).strip() for key in COMPLETION_JSON_KEYS}
 
 
