@@ -116,10 +116,10 @@ export function VoiceCommander() {
 
   return (
     <>
-      <div className="fixed bottom-24 right-6 z-50 print:hidden flex flex-col items-end gap-3 font-mono">
+      <div className="fixed bottom-8 left-6 z-[9999] print:hidden flex flex-col items-start gap-3 font-mono">
         
         {showLangMenu && (
-          <div className="bg-navy-900 border border-slate-700 rounded-lg p-2 flex flex-col gap-1 shadow-lg animate-fade-in mb-2">
+          <div className="bg-navy-900 border border-slate-700 rounded-lg p-2 flex flex-col gap-1 shadow-lg animate-fade-in mb-2 self-start">
             <button onClick={() => setLang("en-IN")} className={`text-xs px-3 py-1.5 rounded text-left ${language === 'en-IN' ? 'bg-cyan-900/50 text-cyan-400' : 'text-slate-300 hover:bg-slate-800'}`}>English</button>
             <button onClick={() => setLang("hi-IN")} className={`text-xs px-3 py-1.5 rounded text-left ${language === 'hi-IN' ? 'bg-cyan-900/50 text-cyan-400' : 'text-slate-300 hover:bg-slate-800'}`}>हिंदी</button>
             <button onClick={() => setLang("kn-IN")} className={`text-xs px-3 py-1.5 rounded text-left ${language === 'kn-IN' ? 'bg-cyan-900/50 text-cyan-400' : 'text-slate-300 hover:bg-slate-800'}`}>ಕನ್ನಡ</button>
@@ -127,7 +127,7 @@ export function VoiceCommander() {
         )}
 
         {showConsole && (
-          <div className="bg-navy-950/90 border border-cyan-500/30 rounded-2xl p-4 w-72 shadow-glow backdrop-blur-xl animate-scale-in text-xs space-y-2">
+          <div className="bg-navy-950/90 border border-cyan-500/30 rounded-2xl p-4 w-72 shadow-glow backdrop-blur-xl animate-scale-in text-xs space-y-2 self-start">
             <div className="flex items-center justify-between border-b border-white/10 pb-1.5">
               <div className="flex items-center gap-2 text-cyan-accent font-bold">
                 <Bot className="h-4 w-4 animate-pulse" />
