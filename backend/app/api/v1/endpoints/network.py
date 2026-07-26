@@ -12,7 +12,7 @@ router = APIRouter()
 async def _get_full_graph_data(db: AsyncSession) -> Dict[str, Any]:
     stmt = select(CaseMaster).options(
         selectinload(CaseMaster.officer),
-        selectinload(CaseMaster.station),
+        selectinload(CaseMaster.station).selectinload(PoliceStation.district),
         selectinload(CaseMaster.crime_sub_head).selectinload(CrimeSubHead.crime_head),
         selectinload(CaseMaster.complainants),
         selectinload(CaseMaster.victims),
