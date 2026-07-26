@@ -129,13 +129,29 @@ def generate_pdf_dossier_reportlab(data: DossierData) -> bytes:
 
 
 @router.post("/smartbrowz-dossier")
-async def generate_smartbrowz_dossier(data: DossierData, request: Request):
+async def generate_smartbrowz_dossier(request: Request):
     """
     Generates a Rich Official PDF Dossier using Zoho Catalyst SmartBrowz with ReportLab fallback.
+    Accepts any JSON payload - extracts overview/incident/evidence flexibly.
     """
-    ov = data.overview
-    inc = data.incident
-    ev_list = data.evidence
+    import json as _json
+    try:
+        raw_body = await request.body()
+        body = _json.loads(raw_body)
+    except Exception:
+        body = {}
+
+    # Flexibly extract fields - frontend may send the full dossierData object
+    ov = body.get("overview") or {}
+    inc = body.get("incident") or {}
+    ev_list = body.get("evidence") or []
+
+    # Build a DossierData-compatible object for ReportLab fallback
+    class _FakeDossier:
+        overview = ov
+        incident = inc
+        evidence = ev_list
+    data = _FakeDossier()
 
     html_content = f"""
     <!DOCTYPE html>
