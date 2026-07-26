@@ -252,42 +252,19 @@ export function AIAssistant() {
     setCopilotTyping(true);
 
     try {
-      const isPlaybookQuery =
-        trimmed.toLowerCase().includes("vehicle") ||
-        trimmed.toLowerCase().includes("theft") ||
-        trimmed.toLowerCase().includes("division") ||
-        trimmed.toLowerCase().includes("ravi") ||
-        trimmed.toLowerCase().includes("bouncer") ||
-        trimmed.toLowerCase().includes("bidar") ||
-        trimmed.toLowerCase().includes("fraud") ||
-        trimmed.toLowerCase().includes("bank");
-
       let resData;
-      if (isPlaybookQuery) {
-        const response = await fetch("/api/v1/chat/query", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query: trimmed })
-        });
-        if (response.ok) {
-          resData = await response.json();
-        } else {
-          throw new Error("Playbook query failed");
-        }
+      const response = await fetch("/api/v1/intelligence/query-case", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          case_id: selectedCaseId,
+          message: trimmed
+        })
+      });
+      if (response.ok) {
+        resData = await response.json();
       } else {
-        const response = await fetch("/api/v1/intelligence/query-case", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            case_id: selectedCaseId,
-            message: trimmed
-          })
-        });
-        if (response.ok) {
-          resData = await response.json();
-        } else {
-          throw new Error("Query failed");
-        }
+        throw new Error("Query failed");
       }
 
       if (resData) {
