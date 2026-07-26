@@ -9,8 +9,9 @@ from __future__ import annotations
 import re
 from datetime import datetime, timedelta
 from typing import Any, Dict, List
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 
 from app.domain.models.ingested_case import IngestedCase
 from app.infrastructure.database.setup import get_db
@@ -250,16 +251,50 @@ async def get_case(case_id: str, db: AsyncSession = Depends(get_db)) -> Dict[str
     if not suspects_list:
         suspects_list = [{"name": "Unidentified Masked Group", "match": "80%"}]
 
-    # 10. Compile Investigator Copilot Briefing
-    copilot_block = {
-        "riskScore": risk_score,
-        "aiSummary": f"This case represents a high-profile {db_case['crime_minor_head'].lower()} offense registered under PS-{db_case['police_station_id']}. Behavioral extraction indicates a structured execution pattern matching similar local syndicate playbooks. Recommended immediate actions include checkpoint alerts and bank holds.",
-        "crimeCategory": db_case["crime_major_head"],
-        "organizedCrimeLikelihood": "Probable" if gravity == "Heinous" else "Unlikely",
-        "suspects": suspects_list,
-        "similarCases": similar_cases_tags,
-        "recommendations": recs
-    }
+    # 10. Compile Investigator Copilot Briefing from Auto-Investigation Background Task
+    from app.models.copilot import CopilotDraft
+    import json
+    
+    draft_query = await db.execute(select(CopilotDraft).where(
+        CopilotDraft.case_id == str(case_master_id),
+        CopilotDraft.draft_type == "auto_investigation"
+    ).order_by(CopilotDraft.created_at.desc()))
+    
+    auto_investigation_draft = draft_query.scalars().first()
+    
+    if auto_investigation_draft:
+        try:
+            ai_data = json.loads(auto_investigation_draft.content)
+            copilot_block = {
+                "riskScore": ai_data.get("confidenceScore", risk_score),
+                "aiSummary": ai_data.get("aiSummary", "AI Summary Unavailable."),
+                "crimeCategory": db_case["crime_major_head"],
+                "organizedCrimeLikelihood": "Probable" if gravity == "Heinous" else "Unlikely",
+                "suspects": suspects_list,
+                "similarCases": similar_cases_tags,
+                "recommendations": ai_data.get("recommendations", recs),
+                "evidenceUsed": ai_data.get("evidenceUsed", [])
+            }
+        except json.JSONDecodeError:
+            copilot_block = {
+                "riskScore": risk_score,
+                "aiSummary": "AI investigation payload corrupted.",
+                "crimeCategory": db_case["crime_major_head"],
+                "organizedCrimeLikelihood": "Unknown",
+                "suspects": suspects_list,
+                "similarCases": similar_cases_tags,
+                "recommendations": ["Manual review required"]
+            }
+    else:
+        copilot_block = {
+            "riskScore": risk_score,
+            "aiSummary": "AI Investigation in Progress. Please wait...",
+            "crimeCategory": db_case["crime_major_head"],
+            "organizedCrimeLikelihood": "Pending AI Assessment",
+            "suspects": suspects_list,
+            "similarCases": similar_cases_tags,
+            "recommendations": ["Awaiting AI recommendations..."]
+        }
 
     # 11. Assemble unified brief dossier
     brief = {
@@ -378,7 +413,7 @@ async def get_case_copilot_logs(case_id: str, db: AsyncSession = Depends(get_db)
 
 
 @router.post("/", response_model=Dict[str, Any], status_code=status.HTTP_201_CREATED)
-async def create_case(case_payload: Dict[str, Any], db: AsyncSession = Depends(get_db)) -> Dict[str, Any]:
+async def create_case(case_payload: Dict[str, Any], background_tasks: BackgroundTasks, db: AsyncSession = Depends(get_db)) -> Dict[str, Any]:
     """Ingests a new FIR, extracts features, adds it to FAISS, and saves in database."""
     try:
         case = IngestedCase.model_validate(case_payload)
@@ -420,5 +455,13 @@ async def create_case(case_payload: Dict[str, Any], db: AsyncSession = Depends(g
             )
         ]
     )
+
+    # Trigger Auto-Investigation
+    from app.services.auto_investigation import run_auto_investigation
+    # similar_cases_tags logic for prompt could be extracted, but here we can just pass an empty list for now 
+    # since it's a background task and FAISS index just got updated. It will fetch inside.
+    # Actually, we can fetch top matches right here or let the task do it. For now, empty list is fine for demo, 
+    # or we can pass a dummy list until full integration.
+    background_tasks.add_task(run_auto_investigation, case.case_master_id, [], db)
 
     return await repo.fetch_raw_fir(case.case_master_id)

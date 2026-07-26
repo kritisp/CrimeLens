@@ -7,7 +7,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       "/api": {
-        target: "https://crimelens-backend-50044197986.development.catalystappsail.in",
+        target: "http://localhost:8000",
         changeOrigin: true,
         secure: false,
       },

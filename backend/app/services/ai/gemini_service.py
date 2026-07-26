@@ -17,6 +17,7 @@ except ImportError:
 
 from app.core.config import settings
 from app.services.ai.prompts import FIR_SYSTEM_PROMPT
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -84,7 +85,10 @@ class GeminiService:
             except Exception as exc:
                 logger.error("Gemini API call failed: %s. Falling back to local smart engine.", exc)
 
-        return self._local_smart_chat(message, history)
+        use_mock = os.getenv("USE_MOCK_AI", "false").lower() == "true"
+        if use_mock:
+            return self._local_smart_chat(message, history)
+        return "AI service temporarily unavailable."
 
     def _local_smart_chat(self, message: str, history: Optional[list[dict]] = None) -> str:
         full_text = " ".join([h.get("content", "") for h in (history or [])] + [message]).lower()
@@ -148,7 +152,10 @@ class GeminiService:
             except Exception as exc:
                 logger.error("Gemini draft API error: %s. Using local draft generator.", exc)
 
-        return self._local_smart_draft(messages)
+        use_mock = os.getenv("USE_MOCK_AI", "false").lower() == "true"
+        if use_mock:
+            return self._local_smart_draft(messages)
+        return "AI service temporarily unavailable."
 
     def _local_smart_draft(self, messages: list[dict[str, str]]) -> str:
         full_text = " ".join([m.get("content", "") for m in messages if m.get("role") == "user"])
@@ -247,7 +254,10 @@ class GeminiService:
             except Exception as exc:
                 logger.error("Error generating intelligence briefing via Gemini API: %s", exc)
 
-        return self._local_smart_briefing(stats_context)
+        use_mock = os.getenv("USE_MOCK_AI", "false").lower() == "true"
+        if use_mock:
+            return self._local_smart_briefing(stats_context)
+        return "AI service temporarily unavailable."
 
     def _local_smart_briefing(self, stats_context: str) -> str:
         briefing_points = [
@@ -297,6 +307,10 @@ class GeminiService:
             except Exception as exc:
                 logger.error("Gemini Copilot API error: %s", exc)
 
+        use_mock = os.getenv("USE_MOCK_AI", "false").lower() == "true"
+        if not use_mock:
+            return "AI service temporarily unavailable."
+
         # Local smart copilot answer
         q_lower = user_query.lower()
         fir_num = case_info.get("firNumber", "FIR-1000")
@@ -344,6 +358,66 @@ class GeminiService:
                 f"• Extracted Entities: {len(entities)}\n\n"
                 f"Ask me about evidence files, extracted entities, similar MOs, or request draft witness statements."
             )
+
+    async def classify_voice_intent(self, transcript: str, language: str) -> dict:
+        """Classify voice transcript into a UI action."""
+        if self._client:
+            prompt = (
+                f"You are a Voice Command Router for a Police Investigation Copilot.\n"
+                f"User spoke the following in language '{language}':\n"
+                f"\"{transcript}\"\n\n"
+                f"Determine the user's intent and return a JSON object exactly matching this structure:\n"
+                f"{{\n"
+                f"  \"action\": \"NAVIGATE\" | \"SPEAK\" | \"UNKNOWN\",\n"
+                f"  \"route\": \"/dashboard\" | \"/cases\" | \"/crime-intelligence\" | \"/analytics\" | \"/ai-assistant\" | \"/register-fir\" | \"/\" | null,\n"
+                f"  \"reply\": \"A short confirmation message translated into the original language spoken.\"\n"
+                f"}}\n\n"
+                f"Examples of routing:\n"
+                f"- 'dashboard', 'nakshe' -> /dashboard\n"
+                f"- 'cases', 'firs' -> /cases\n"
+                f"- 'map', 'gis', 'locations' -> /crime-intelligence\n"
+                f"- 'analytics', 'stats' -> /analytics\n"
+                f"- 'assistant', 'bot', 'gemini' -> /ai-assistant\n"
+                f"- 'register', 'new case' -> /register-fir\n"
+                f"- 'logout' -> /\n"
+                f"If asking for system status, use action SPEAK with reply containing the status."
+            )
+            config = types.GenerateContentConfig(
+                system_instruction="You are a strict JSON command router. Always respond in valid JSON without markdown blocks.",
+                temperature=0.1,
+                response_mime_type="application/json"
+            )
+            try:
+                response = self._client.models.generate_content(
+                    model=self._model,
+                    contents=prompt,
+                    config=config,
+                )
+                if response.text and response.text.strip():
+                    return json.loads(response.text.strip())
+            except Exception as exc:
+                logger.error("Gemini Intent API error: %s", exc)
+
+        # Fallback keyword matching if Gemini is unavailable
+        cmd = transcript.lower()
+        if "dashboard" in cmd or "overview" in cmd or "nakshe" in cmd:
+            return {"action": "NAVIGATE", "route": "/dashboard", "reply": "Navigating to dashboard"}
+        elif "cases" in cmd or "firs" in cmd or "case-galu" in cmd:
+            return {"action": "NAVIGATE", "route": "/cases", "reply": "Opening cases"}
+        elif "map" in cmd or "intelligence" in cmd or "gis" in cmd:
+            return {"action": "NAVIGATE", "route": "/crime-intelligence", "reply": "Opening map"}
+        elif "analytics" in cmd or "statistics" in cmd or "stats" in cmd:
+            return {"action": "NAVIGATE", "route": "/analytics", "reply": "Accessing analytics"}
+        elif "assistant" in cmd or "bot" in cmd or "chat" in cmd:
+            return {"action": "NAVIGATE", "route": "/ai-assistant", "reply": "Opening assistant"}
+        elif "register" in cmd or "new case" in cmd or "fir" in cmd:
+            return {"action": "NAVIGATE", "route": "/register-fir", "reply": "Initiating FIR registration"}
+        elif "logout" in cmd or "log out" in cmd or "exit" in cmd:
+            return {"action": "NAVIGATE", "route": "/", "reply": "Logging out"}
+        elif "status" in cmd or "brief" in cmd:
+            return {"action": "SPEAK", "route": None, "reply": "System is online and fully operational."}
+        else:
+            return {"action": "UNKNOWN", "route": None, "reply": "Command not recognized."}
 
 
 # Module-level singleton

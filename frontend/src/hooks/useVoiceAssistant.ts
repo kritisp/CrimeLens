@@ -4,6 +4,7 @@ export interface VoiceAssistantOptions {
   onTranscriptChange?: (text: string) => void;
   onFinalTranscript?: (text: string) => void;
   autoSpeak?: boolean;
+  language?: string;
 }
 
 export function useVoiceAssistant(options: VoiceAssistantOptions = {}) {
@@ -30,7 +31,7 @@ export function useVoiceAssistant(options: VoiceAssistantOptions = {}) {
       const rec = new SpeechRecognitionAPI();
       rec.continuous = true;
       rec.interimResults = true;
-      rec.lang = "en-IN"; // English (India) & standard English
+      rec.lang = options.language || "en-IN"; // Use dynamic language
 
       rec.onresult = (event: any) => {
         let currentTranscript = "";
@@ -65,7 +66,7 @@ export function useVoiceAssistant(options: VoiceAssistantOptions = {}) {
       }
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, []);
+  }, [options.language]);
 
   // Timer logic for recording
   useEffect(() => {
@@ -175,7 +176,7 @@ export function useVoiceAssistant(options: VoiceAssistantOptions = {}) {
     const utterance = new SpeechSynthesisUtterance(cleanText);
     utterance.rate = 1.0;
     utterance.pitch = 1.0;
-    utterance.lang = "en-IN";
+    utterance.lang = options.language || "en-IN";
 
     utterance.onstart = () => {
       setIsSpeaking(true);

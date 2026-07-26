@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Mic, Volume2, Bot } from "lucide-react";
+import { Mic, Volume2, Bot, Globe } from "lucide-react";
 
 export function VoiceCommander() {
   const navigate = useNavigate();
@@ -9,6 +9,11 @@ export function VoiceCommander() {
   const [recognition, setRecognition] = useState<any>(null);
   const [feedback, setFeedback] = useState("");
   const [showConsole, setShowConsole] = useState(false);
+  
+  // Language Support
+  const [language, setLanguage] = useState("en-IN");
+  const [showLangMenu, setShowLangMenu] = useState(false);
+  const hideTimeoutRef = useRef<any>(null);
 
   useEffect(() => {
     // Check SpeechRecognition browser availability
@@ -17,11 +22,11 @@ export function VoiceCommander() {
       const rec = new SpeechRecognition();
       rec.continuous = false;
       rec.interimResults = false;
-      rec.lang = "en-IN"; // Set English (India) or English (US)
+      rec.lang = language;
 
       rec.onstart = () => {
         setIsListening(true);
-        setFeedback("Listening for command dispatch...");
+        setFeedback(language === "en-IN" ? "Listening..." : language === "hi-IN" ? "सुन रहा हूँ..." : "ಕೇಳುತ್ತಿದ್ದೇನೆ...");
       };
 
       rec.onend = () => {
@@ -42,7 +47,7 @@ export function VoiceCommander() {
 
       setRecognition(rec);
     }
-  }, [navigate]);
+  }, [navigate, language]);
 
   const speak = (msg: string) => {
     if ("speechSynthesis" in window) {
@@ -50,49 +55,44 @@ export function VoiceCommander() {
       const utterance = new SpeechSynthesisUtterance(msg);
       utterance.rate = 1.0;
       utterance.pitch = 1.1;
+      utterance.lang = language;
       window.speechSynthesis.speak(utterance);
     }
   };
 
-  const processVoiceCommand = (cmd: string) => {
+  const processVoiceCommand = async (cmd: string) => {
     setShowConsole(true);
-    setFeedback(`Processing command: "${cmd}"`);
+    setFeedback(`Processing: "${cmd}"`);
 
-    // Routing commands
-    if (cmd.includes("dashboard") || cmd.includes("overview")) {
-      speak("Navigating to intelligence command center dashboard.");
-      setTimeout(() => navigate("/dashboard"), 800);
-    } else if (cmd.includes("cases") || cmd.includes("all cases")) {
-      speak("Accessing cases and digital dossiers database.");
-      setTimeout(() => navigate("/cases"), 800);
-    } else if (cmd.includes("map") || cmd.includes("intelligence") || cmd.includes("gis")) {
-      speak("Opening crime intelligence GIS map layers.");
-      setTimeout(() => navigate("/crime-intelligence"), 800);
-    } else if (cmd.includes("analytics") || cmd.includes("statistics") || cmd.includes("charts")) {
-      speak("Accessing crime intelligence analytics center.");
-      setTimeout(() => navigate("/analytics"), 800);
-    } else if (cmd.includes("assistant") || cmd.includes("chat") || cmd.includes("bot")) {
-      speak("Connecting with Gemini investigator assistant.");
-      setTimeout(() => navigate("/ai-assistant"), 800);
-    } else if (cmd.includes("register") || cmd.includes("fir") || cmd.includes("new case")) {
-      speak("Initiating new FIR registration form.");
-      setTimeout(() => navigate("/register-fir"), 800);
-    } else if (cmd.includes("logout") || cmd.includes("log out") || cmd.includes("exit")) {
-      speak("Terminating secure dispatch link. Logging out.");
-      setTimeout(() => navigate("/"), 800);
-    } else if (cmd.includes("status") || cmd.includes("brief") || cmd.includes("read status")) {
-      const statsBrief = "System status: Online. Database connection: Verified. Current queue includes two thousand eight hundred forty seven active case files. AI engines operational.";
-      setFeedback("System briefing active...");
-      speak(statsBrief);
-    } else {
-      speak("Command not recognized. Please speak clear directions.");
-      setFeedback(`Unknown dispatch: "${cmd}". Speak "dashboard", "cases", "map", "analytics", "register", or "status".`);
+    try {
+      const res = await fetch("/api/v1/intelligence/voice-intent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ transcript: cmd, language: language })
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        
+        if (data.reply) {
+          speak(data.reply);
+          setFeedback(data.reply);
+        }
+
+        if (data.action === "NAVIGATE" && data.route) {
+          setTimeout(() => navigate(data.route), 1200);
+        }
+      } else {
+        throw new Error("API failed");
+      }
+    } catch (err) {
+      console.error(err);
+      speak(language === "en-IN" ? "Network error" : "Network error");
+      setFeedback("Failed to process command over network.");
     }
 
-    // Hide console shortly after execution
-    setTimeout(() => {
-      setShowConsole(false);
-    }, 4500);
+    if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
+    hideTimeoutRef.current = setTimeout(() => setShowConsole(false), 5000);
   };
 
   const toggleListen = () => {
@@ -108,44 +108,69 @@ export function VoiceCommander() {
     }
   };
 
+  const setLang = (code: string) => {
+    setLanguage(code);
+    setShowLangMenu(false);
+    speak(code === "en-IN" ? "English activated" : code === "hi-IN" ? "हिंदी सक्रिय" : "ಕನ್ನಡ ಸಕ್ರಿಯಗೊಳಿಸಲಾಗಿದೆ");
+  };
+
   return (
     <>
-      {/* Floating Widget mic button */}
       <div className="fixed bottom-6 right-6 z-50 print:hidden flex flex-col items-end gap-3 font-mono">
-        {/* Glowing voice console overlay */}
+        
+        {showLangMenu && (
+          <div className="bg-navy-900 border border-slate-700 rounded-lg p-2 flex flex-col gap-1 shadow-lg animate-fade-in mb-2">
+            <button onClick={() => setLang("en-IN")} className={`text-xs px-3 py-1.5 rounded text-left ${language === 'en-IN' ? 'bg-cyan-900/50 text-cyan-400' : 'text-slate-300 hover:bg-slate-800'}`}>English</button>
+            <button onClick={() => setLang("hi-IN")} className={`text-xs px-3 py-1.5 rounded text-left ${language === 'hi-IN' ? 'bg-cyan-900/50 text-cyan-400' : 'text-slate-300 hover:bg-slate-800'}`}>हिंदी</button>
+            <button onClick={() => setLang("kn-IN")} className={`text-xs px-3 py-1.5 rounded text-left ${language === 'kn-IN' ? 'bg-cyan-900/50 text-cyan-400' : 'text-slate-300 hover:bg-slate-800'}`}>ಕನ್ನಡ</button>
+          </div>
+        )}
+
         {showConsole && (
           <div className="bg-navy-950/90 border border-cyan-500/30 rounded-2xl p-4 w-72 shadow-glow backdrop-blur-xl animate-scale-in text-xs space-y-2">
-            <div className="flex items-center gap-2 border-b border-white/10 pb-1.5 text-cyan-accent font-bold">
-              <Bot className="h-4 w-4 animate-pulse" />
-              <span>Voice Commander Active</span>
+            <div className="flex items-center justify-between border-b border-white/10 pb-1.5">
+              <div className="flex items-center gap-2 text-cyan-accent font-bold">
+                <Bot className="h-4 w-4 animate-pulse" />
+                <span>AI Copilot</span>
+              </div>
+              <span className="text-[9px] uppercase text-slate-500">{language}</span>
             </div>
             {transcript && (
               <p className="text-[10px] text-slate-400">
-                Parsed: <b className="text-white">"{transcript}"</b>
+                "{transcript}"
               </p>
             )}
-            <p className="text-[10px] text-cyan-300 font-bold animate-pulse flex items-center gap-1.5">
-              <Volume2 className="h-3 w-3" />
-              {feedback}
+            <p className="text-[10px] text-cyan-300 font-bold flex items-start gap-1.5 mt-2">
+              <Volume2 className="h-3 w-3 mt-0.5 shrink-0" />
+              <span className="leading-relaxed">{feedback}</span>
             </p>
           </div>
         )}
 
-        <button
-          onClick={toggleListen}
-          title="Toggle Voice Dispatch Commander"
-          className={`h-12 w-12 rounded-full border flex items-center justify-center transition-all duration-300 shadow-glow group ${
-            isListening
-              ? "bg-rose-500 border-rose-400 text-white animate-pulse"
-              : "bg-cyan-accent/10 border-cyan-accent/30 text-cyan-accent hover:bg-cyan-accent/20 hover:scale-105"
-          }`}
-        >
-          {isListening ? (
-            <Mic className="h-5 w-5" />
-          ) : (
-            <Mic className="h-5 w-5 group-hover:scale-110 transition-transform" />
-          )}
-        </button>
+        <div className="flex gap-2">
+          <button 
+            onClick={() => setShowLangMenu(!showLangMenu)}
+            className="h-12 w-12 rounded-full border border-slate-700 bg-slate-900/80 text-slate-400 flex items-center justify-center hover:bg-slate-800 transition-colors"
+            title="Change Language"
+          >
+            <Globe className="h-5 w-5" />
+          </button>
+          <button
+            onClick={toggleListen}
+            title="Toggle Voice Dispatch Commander"
+            className={`h-12 w-12 rounded-full border flex items-center justify-center transition-all duration-300 shadow-glow group ${
+              isListening
+                ? "bg-rose-500 border-rose-400 text-white animate-pulse"
+                : "bg-cyan-accent/10 border-cyan-accent/30 text-cyan-accent hover:bg-cyan-accent/20 hover:scale-105"
+            }`}
+          >
+            {isListening ? (
+              <Mic className="h-5 w-5" />
+            ) : (
+              <Mic className="h-5 w-5 group-hover:scale-110 transition-transform" />
+            )}
+          </button>
+        </div>
       </div>
     </>
   );

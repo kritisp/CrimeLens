@@ -41,106 +41,7 @@ interface GraphEdge {
 //  MOCK DATA — positions use a normalized [-1..1] range, mapped to canvas later
 // ─────────────────────────────────────────────────────────────────────────────
 function buildGraphData(): { nodes: GraphNode[]; edges: GraphEdge[] } {
-  // Spread nodes around origin; physics will settle them
-  const P = (ax: number, ay: number): { x: number; y: number } => ({
-    x: ax * 200,
-    y: ay * 200,
-  });
-
-  const nodes: GraphNode[] = [
-    // ── Cases ──
-    { id: "c1", label: "FIR-2024-0041", type: "case", subtype: "Cyber Crime", riskLevel: "critical",
-      details: { Complainant: "Ravi Sharma", Status: "Investigating", Date: "2024-06-12", Priority: "Critical", Officer: "SI Ananya Reddy", Station: "Cyber Cell, BLR", RiskScore: 92 },
-      ...P(0.1, -0.2), vx: 0, vy: 0, pinned: false, radius: 22, centrality: 0.91 },
-    { id: "c2", label: "FIR-2024-0055", type: "case", subtype: "Fraud", riskLevel: "high",
-      details: { Complainant: "Priya Mehta", Status: "Pending", Date: "2024-06-18", Priority: "High", Officer: "Insp. Vikram Singh", Station: "EOW, BLR", RiskScore: 79 },
-      ...P(0.5, 0.1), vx: 0, vy: 0, pinned: false, radius: 18, centrality: 0.67 },
-    { id: "c3", label: "FIR-2024-0062", type: "case", subtype: "Cyber Crime", riskLevel: "high",
-      details: { Complainant: "Arjun Nair", Status: "Investigating", Date: "2024-06-21", Priority: "High", Officer: "SI Ananya Reddy", Station: "Cyber Cell, BLR", RiskScore: 83 },
-      ...P(-0.4, -0.3), vx: 0, vy: 0, pinned: false, radius: 19, centrality: 0.72 },
-    { id: "c4", label: "FIR-2024-0078", type: "case", subtype: "Theft", riskLevel: "medium",
-      details: { Complainant: "Sita Devi", Status: "Solved", Date: "2024-05-30", Priority: "Medium", Officer: "SI Amit Kumar", Station: "Indiranagar PS", RiskScore: 45 },
-      ...P(-0.7, 0.2), vx: 0, vy: 0, pinned: false, radius: 15, centrality: 0.41 },
-    { id: "c5", label: "FIR-2024-0089", type: "case", subtype: "Assault", riskLevel: "critical",
-      details: { Complainant: "Vikram Bose", Status: "Investigating", Date: "2024-07-02", Priority: "Critical", Officer: "Insp. Vikram Singh", Station: "Koramangala PS", RiskScore: 95 },
-      ...P(0.0, 0.5), vx: 0, vy: 0, pinned: false, radius: 21, centrality: 0.88 },
-    { id: "c6", label: "FIR-2024-0092", type: "case", subtype: "Drug Possession", riskLevel: "high",
-      details: { Complainant: "State vs. Accused", Status: "Pending", Date: "2024-07-05", Priority: "High", Officer: "SI Priya Sen", Station: "Narcotics Cell", RiskScore: 77 },
-      ...P(0.8, -0.4), vx: 0, vy: 0, pinned: false, radius: 17, centrality: 0.59 },
-
-    // ── Suspects ──
-    { id: "s1", label: "Rohit Verma", type: "suspect", riskLevel: "critical",
-      details: { Age: 34, Alias: "The Ghost", PriorConvictions: 3, MO: "Phishing + UPI Fraud", LastSeen: "Koramangala", Nationality: "Indian", ThreatLevel: "Critical" },
-      ...P(0.9, -0.05), vx: 0, vy: 0, pinned: false, radius: 24, cluster: 1, centrality: 0.95 },
-    { id: "s2", label: "Deepak Rao", type: "suspect", riskLevel: "high",
-      details: { Age: 28, Alias: "D-Ram", PriorConvictions: 1, MO: "Vehicle Theft", LastSeen: "Whitefield", Nationality: "Indian", ThreatLevel: "High" },
-      ...P(-0.9, -0.05), vx: 0, vy: 0, pinned: false, radius: 19, cluster: 2, centrality: 0.64 },
-    { id: "s3", label: "Anwar Sheikh", type: "suspect", riskLevel: "high",
-      details: { Age: 42, Alias: "AW", PriorConvictions: 2, MO: "Financial Fraud", LastSeen: "Shivajinagar", Nationality: "Indian", ThreatLevel: "High" },
-      ...P(1.1, 0.3), vx: 0, vy: 0, pinned: false, radius: 20, cluster: 1, centrality: 0.73 },
-    { id: "s4", label: "Kavita Shetty", type: "suspect", riskLevel: "medium",
-      details: { Age: 26, Alias: "KS", PriorConvictions: 0, MO: "Drug Distribution", LastSeen: "Jayanagar", Nationality: "Indian", ThreatLevel: "Medium" },
-      ...P(0.45, -0.7), vx: 0, vy: 0, pinned: false, radius: 16, cluster: 3, centrality: 0.48 },
-    { id: "s5", label: "Mohan Das", type: "suspect", riskLevel: "critical",
-      details: { Age: 38, Alias: "The Broker", PriorConvictions: 5, MO: "Organized Crime Syndicate", LastSeen: "Unknown", Nationality: "Indian", ThreatLevel: "Critical" },
-      ...P(1.25, -0.55), vx: 0, vy: 0, pinned: false, radius: 26, cluster: 1, centrality: 0.98 },
-
-    // ── Officers ──
-    { id: "o1", label: "SI Ananya Reddy", type: "officer",
-      details: { Badge: "KSP-1042", Rank: "Sub Inspector", Station: "Cyber Cell, BLR", CasesHandled: 18, ClearanceRate: "78%", Specialization: "Cyber Crime" },
-      ...P(-0.25, -0.75), vx: 0, vy: 0, pinned: false, radius: 18, centrality: 0.55 },
-    { id: "o2", label: "Insp. Vikram Singh", type: "officer",
-      details: { Badge: "KSP-0892", Rank: "Inspector", Station: "EOW, BLR", CasesHandled: 22, ClearanceRate: "86%", Specialization: "Economic Offences" },
-      ...P(0.3, 0.85), vx: 0, vy: 0, pinned: false, radius: 20, centrality: 0.61 },
-
-    // ── Locations ──
-    { id: "l1", label: "Koramangala Tech Hub", type: "location",
-      details: { Zone: "Koramangala", RiskScore: 88, CrimesReported: 34, MostCommonCrime: "Cyber Crime", LastIncident: "2024-07-05", CCTV: "Active" },
-      ...P(-1.0, 0.5), vx: 0, vy: 0, pinned: false, radius: 17, centrality: 0.52 },
-    { id: "l2", label: "MG Road Corridor", type: "location",
-      details: { Zone: "Central BLR", RiskScore: 72, CrimesReported: 21, MostCommonCrime: "Theft", LastIncident: "2024-07-01", CCTV: "Active" },
-      ...P(-1.1, -0.3), vx: 0, vy: 0, pinned: false, radius: 14, centrality: 0.39 },
-
-    // ── Organizations ──
-    { id: "org1", label: "Syndicate Alpha", type: "organization", riskLevel: "critical",
-      details: { Type: "Organized Crime", Members: "14 Known", Territory: "BLR South", Revenue: "Est. ₹4.2 Cr/yr", Status: "Active", Founded: "2019" },
-      ...P(1.5, 0), vx: 0, vy: 0, pinned: false, radius: 28, cluster: 1, centrality: 1.0 },
-    { id: "org2", label: "Ghost Net Group", type: "organization", riskLevel: "high",
-      details: { Type: "Cyber Crime Ring", Members: "8 Known", Territory: "Online + Whitefield", Revenue: "Est. ₹2.1 Cr/yr", Status: "Active", Founded: "2021" },
-      ...P(1.35, -0.75), vx: 0, vy: 0, pinned: false, radius: 22, cluster: 1, centrality: 0.87 },
-  ];
-
-  const edges: GraphEdge[] = [
-    { id: "e1", source: "c1", target: "c3", type: "mo_link", weight: 3, label: "Same MO: Phishing", confidence: 91 },
-    { id: "e2", source: "c2", target: "c3", type: "mo_link", weight: 2, label: "Similar MO: UPI Fraud", confidence: 76 },
-    { id: "e3", source: "c1", target: "c6", type: "mo_link", weight: 2, label: "Common Network Node", confidence: 68 },
-    { id: "e4", source: "s1", target: "c1", type: "suspect_relation", weight: 4, label: "Primary Suspect", confidence: 94 },
-    { id: "e5", source: "s1", target: "c3", type: "suspect_relation", weight: 3, label: "Linked via Device MAC", confidence: 82 },
-    { id: "e6", source: "s3", target: "c2", type: "suspect_relation", weight: 3, label: "Financial Beneficiary", confidence: 88 },
-    { id: "e7", source: "s2", target: "c4", type: "suspect_relation", weight: 2, label: "Witnessed at Scene", confidence: 61 },
-    { id: "e8", source: "s4", target: "c6", type: "suspect_relation", weight: 3, label: "Arrested with Evidence", confidence: 97 },
-    { id: "e9", source: "s5", target: "c5", type: "suspect_relation", weight: 4, label: "Mastermind (Intelligence)", confidence: 72 },
-    { id: "e10", source: "s1", target: "c2", type: "suspect_relation", weight: 2, label: "Digital Fingerprint Match", confidence: 69 },
-    { id: "e11", source: "o1", target: "c1", type: "officer_assigned", weight: 1, label: "Investigating Officer", confidence: 100 },
-    { id: "e12", source: "o1", target: "c3", type: "officer_assigned", weight: 1, label: "Investigating Officer", confidence: 100 },
-    { id: "e13", source: "o2", target: "c2", type: "officer_assigned", weight: 1, label: "Lead Investigator", confidence: 100 },
-    { id: "e14", source: "o2", target: "c5", type: "officer_assigned", weight: 1, label: "Lead Investigator", confidence: 100 },
-    { id: "e15", source: "s1", target: "s3", type: "co_offender", weight: 3, label: "Known Associates", confidence: 85 },
-    { id: "e16", source: "s1", target: "s5", type: "co_offender", weight: 4, label: "Hierarchy: Reports To", confidence: 78 },
-    { id: "e17", source: "s3", target: "s5", type: "co_offender", weight: 3, label: "Financial Handler", confidence: 71 },
-    { id: "e18", source: "s4", target: "s5", type: "co_offender", weight: 2, label: "Distribution Network", confidence: 65 },
-    { id: "e19", source: "s5", target: "org1", type: "co_offender", weight: 5, label: "Syndicate Leader", confidence: 89 },
-    { id: "e20", source: "s1", target: "org2", type: "co_offender", weight: 4, label: "Core Member", confidence: 84 },
-    { id: "e21", source: "s3", target: "org1", type: "co_offender", weight: 3, label: "Financial Wing", confidence: 77 },
-    { id: "e22", source: "org1", target: "org2", type: "financial", weight: 3, label: "Shared Funding Source", confidence: 63 },
-    { id: "e23", source: "l1", target: "c1", type: "location", weight: 2, label: "Crime Location", confidence: 100 },
-    { id: "e24", source: "l1", target: "c5", type: "location", weight: 2, label: "Incident Zone", confidence: 100 },
-    { id: "e25", source: "l2", target: "c4", type: "location", weight: 2, label: "Crime Scene", confidence: 100 },
-    { id: "e26", source: "l1", target: "s1", type: "location", weight: 2, label: "Last Known Location", confidence: 80 },
-    { id: "e27", source: "l1", target: "s2", type: "location", weight: 1, label: "Spotted in Zone", confidence: 55 },
-  ];
-
-  return { nodes, edges };
+  return { nodes: [], edges: [] };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -217,6 +118,44 @@ export function NetworkExplorer() {
   // Force a re-render tick every 100ms so sidebar reacts to filter changes
   const [, setTick] = useState(0);
   useEffect(() => { const id = setInterval(() => setTick(t => t + 1), 100); return () => clearInterval(id); }, []);
+
+  // Fetch from backend
+  useEffect(() => {
+    async function loadGraph() {
+      try {
+        const [nodesRes, linksRes] = await Promise.all([
+          fetch('/api/v1/network/nodes'),
+          fetch('/api/v1/network/links')
+        ]);
+        if (!nodesRes.ok || !linksRes.ok) return;
+
+        const rawNodes = await nodesRes.json();
+        const rawEdges = await linksRes.json();
+
+        // Map and initialize node positions for physics engine
+        const nodes: GraphNode[] = rawNodes.map((n: any) => ({
+          ...n,
+          x: (Math.random() - 0.5) * 400,
+          y: (Math.random() - 0.5) * 400,
+          vx: 0,
+          vy: 0,
+          pinned: false,
+          radius: n.type === 'case' ? 22 : 18
+        }));
+
+        const edges: GraphEdge[] = rawEdges.map((e: any) => ({
+          ...e,
+          id: e.id || `${e.source}-${e.target}-${e.type}`
+        }));
+
+        graphRef.current = { nodes, edges };
+        setTick(t => t + 1); // trigger re-render with new data
+      } catch (err) {
+        console.error("Failed to load network graph", err);
+      }
+    }
+    loadGraph();
+  }, []);
 
   const { nodes, edges } = graphRef.current;
 
